@@ -1,0 +1,65 @@
+{
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/coder/devcontainer-features/code-server:1": {
+      "auth": "none",
+      "host": "0.0.0.0",
+      "port": "8888"
+    },
+    "ghcr.io/tailscale/codespace/tailscale": {},
+    "ghcr.io/devcontainers/features/desktop-lite:1": {},
+    "ghcr.io/ricky1698/devcontainer-features/devdesk-base:1": {
+      "packages": "bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,claude@latest",
+      "npmGlobalPackages": "node-pty,vibetunnel@1.0.0-beta.15.2"
+    },
+    "ghcr.io/ricky1698/devcontainer-features/portal:1": {
+      "port": "8080",
+      "codeServerPort": "8888"
+    },
+    "ghcr.io/ricky1698/devcontainer-features/tailscale-setup:1": {},
+    "ghcr.io/ricky1698/devcontainer-features/vibetunnel:1": {},
+    "ghcr.io/ricky1698/devcontainer-features/opencode:1": {}
+  },
+  "runArgs": [
+    "--env-file",
+    "${localWorkspaceFolder}/.env",
+    "--device=/dev/net/tun",
+    "--device=/dev/snd"
+  ],
+  "postStartCommand": "supervisorctl reload",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
+  "workspaceFolder": "/home/vscode/workspaces/${localWorkspaceFolderBasename}",
+  "mounts": [
+    "source=${localWorkspaceFolder}/../${localWorkspaceFolderBasename}-workspaces,target=/home/vscode/workspaces,type=bind,consistency=cached"
+  ],
+  "containerEnv": {
+    "DISPLAY": ""
+  },
+  "forwardPorts": [],
+  "portsAttributes": {
+    "8080": {
+      "label": "Portal",
+      "onAutoForward": "notify"
+    },
+    "5901": {
+      "label": "VNC TCP port",
+      "onAutoForward": "silent"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-containers",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "EditorConfig.EditorConfig",
+        "mhutchie.git-graph"
+      ],
+      "settings": {}
+    }
+  }
+}
