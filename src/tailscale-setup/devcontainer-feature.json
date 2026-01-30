@@ -1,0 +1,26 @@
+{
+    "name": "Tailscale Auto-Setup",
+    "id": "tailscale-setup",
+    "version": "1.0.0",
+    "description": "Automatic Tailscale setup with OAuth token from environment",
+    "options": {
+        "autoConnect": {
+            "type": "boolean",
+            "default": true,
+            "description": "Automatically connect to Tailscale on container start if TS_OAUTH_TOKEN is set"
+        },
+        "enableSsh": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable Tailscale SSH"
+        },
+        "acceptRoutes": {
+            "type": "boolean",
+            "default": true,
+            "description": "Accept routes from Tailscale"
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/tailscale/codespace/tailscale"
+    ]
+}

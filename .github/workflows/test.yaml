@@ -1,0 +1,30 @@
+name: "Test dev container features"
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        features:
+          - devdesk-base
+          - portal
+          - tailscale-setup
+          - vibetunnel
+          - opencode
+        baseImage:
+          - mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: "Install devcontainer CLI"
+        run: npm install -g @devcontainers/cli
+
+      - name: "Test '${{ matrix.features }}'"
+        run: devcontainer features test --features ${{ matrix.features }} --base-image ${{ matrix.baseImage }} .

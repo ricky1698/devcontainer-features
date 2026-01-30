@@ -1,0 +1,34 @@
+{
+    "name": "DevDesk Base",
+    "id": "devdesk-base",
+    "version": "1.0.0",
+    "description": "Base development environment with mise, common CLI tools, and supervisor",
+    "options": {
+        "installMise": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install mise (runtime manager)"
+        },
+        "installSupervisor": {
+            "type": "boolean",
+            "default": true,
+            "description": "Install supervisor process manager"
+        },
+        "packages": {
+            "type": "string",
+            "default": "bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,claude@latest",
+            "description": "Comma-separated list of mise packages to install (format: name@version)"
+        },
+        "npmGlobalPackages": {
+            "type": "string",
+            "default": "node-pty,vibetunnel@1.0.0-beta.15.2",
+            "description": "Comma-separated list of npm global packages to install"
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ],
+    "containerEnv": {
+        "PATH": "/home/vscode/.local/share/mise/shims:${PATH}"
+    }
+}

@@ -1,0 +1,21 @@
+{
+    "name": "OpenCode",
+    "id": "opencode",
+    "version": "1.0.0",
+    "description": "OpenCode AI-powered code editor with supervisor config",
+    "options": {
+        "hostname": {
+            "type": "string",
+            "default": "0.0.0.0",
+            "description": "Hostname to bind OpenCode server"
+        },
+        "autostart": {
+            "type": "boolean",
+            "default": true,
+            "description": "Start OpenCode automatically via supervisor"
+        }
+    },
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
