@@ -156,4 +156,15 @@ NGINXEOF
 ln -sf /etc/nginx/sites-available/portal /etc/nginx/sites-enabled/portal
 rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
+# Create supervisor config for nginx
+mkdir -p /etc/supervisor/conf.d
+cat > /etc/supervisor/conf.d/nginx.conf << 'SUPERVISOREOF'
+[program:nginx]
+command=/usr/sbin/nginx -g "daemon off;"
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/nginx-supervisor.log
+stderr_logfile=/var/log/nginx-supervisor.err.log
+SUPERVISOREOF
+
 echo "DevDesk Portal installation complete! (port $PORT)"
