@@ -116,29 +116,21 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
 </html>
 HTMLEOF
 
-# Create default services.yaml
-cat > /var/www/portal/services.yaml << YAMLEOF
-services:
-  - name: OpenCode
-    port: 4096
-    description: AI-powered code editor
-    icon: code
+# Create services.yaml from SERVICES parameter
+# Format: name:port:description:icon,name:port:description:icon,...
+echo "services:" > /var/www/portal/services.yaml
 
-  - name: VibeTunnel
-    port: 4020
-    description: Tunnel service
-    icon: globe
+IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
+for service in "${SERVICE_ARRAY[@]}"; do
+    IFS=':' read -r name port desc icon <<< "$service"
+    cat >> /var/www/portal/services.yaml << SERVICEEOF
+  - name: $name
+    port: $port
+    description: $desc
+    icon: $icon
 
-  - name: noVNC
-    port: 6080
-    description: VNC web client
-    icon: monitor
-
-  - name: Code Server
-    port: $CODESERVERPORT
-    description: VS Code in browser
-    icon: terminal
-YAMLEOF
+SERVICEEOF
+done
 
 # Create nginx config
 cat > /etc/nginx/sites-available/portal << NGINXEOF

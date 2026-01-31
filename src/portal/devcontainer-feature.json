@@ -1,7 +1,7 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "DevDesk Portal with nginx reverse proxy for web services",
     "options": {
         "port": {
@@ -9,20 +9,10 @@
             "default": "8080",
             "description": "Port for the portal nginx server"
         },
-        "enableVnc": {
-            "type": "boolean",
-            "default": true,
-            "description": "Include VNC link in portal"
-        },
-        "enableCodeServer": {
-            "type": "boolean",
-            "default": true,
-            "description": "Include code-server link in portal"
-        },
-        "codeServerPort": {
+        "services": {
             "type": "string",
-            "default": "8888",
-            "description": "Port for code-server (for proxy config)"
+            "default": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal",
+            "description": "Comma-separated services in format name:port:description:icon"
         }
     },
     "installsAfter": [
