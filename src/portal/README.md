@@ -16,9 +16,7 @@ DevDesk Portal with nginx reverse proxy for web services
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
 | port | Port for the portal nginx server | string | 8080 |
-| enableVnc | Include VNC link in portal | boolean | true |
-| enableCodeServer | Include code-server link in portal | boolean | true |
-| codeServerPort | Port for code-server (for proxy config) | string | 8888 |
+| services | Comma-separated services in format name:port:description:icon | string | noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal |
 
 
 
