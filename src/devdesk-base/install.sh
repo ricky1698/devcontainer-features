@@ -27,12 +27,18 @@ rm -rf /var/lib/apt/lists/*
 # Install mise if requested
 if [[ "$INSTALLMISE" == "true" ]]; then
     echo "Installing mise..."
-    
-    # Download and install mise
-    curl -fsSL https://mise.run | sh
-    
-    # Setup mise for the remote user
+
+    # Setup mise path for the remote user
     MISE_BIN="$_REMOTE_USER_HOME/.local/bin/mise"
+
+    # Ensure the directory exists
+    mkdir -p "$(dirname "$MISE_BIN")"
+
+    # Download and install mise to the correct location (not /root)
+    MISE_INSTALL_PATH="$MISE_BIN" curl -fsSL https://mise.run | sh
+
+    # Fix ownership of the .local directory
+    chown -R "$_REMOTE_USER:$_REMOTE_USER" "$_REMOTE_USER_HOME/.local"
     
     if [[ -f "$MISE_BIN" ]]; then
         # Add mise to shell configs
