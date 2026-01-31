@@ -35,7 +35,9 @@ if [[ "$INSTALLMISE" == "true" ]]; then
     mkdir -p "$(dirname "$MISE_BIN")"
 
     # Download and install mise to the correct location (not /root)
-    MISE_INSTALL_PATH="$MISE_BIN" curl -fsSL https://mise.run | sh
+    # Export so the pipe subshell inherits it
+    export MISE_INSTALL_PATH="$MISE_BIN"
+    curl -fsSL https://mise.run | sh
 
     # Fix ownership of the .local directory
     chown -R "$_REMOTE_USER:$_REMOTE_USER" "$_REMOTE_USER_HOME/.local"

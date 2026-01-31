@@ -1,7 +1,7 @@
 {
     "name": "DevDesk Base",
     "id": "devdesk-base",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Base development environment with mise, common CLI tools, and supervisor",
     "options": {
         "installMise": {
