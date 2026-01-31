@@ -117,21 +117,28 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
 HTMLEOF
 
 # Create default services.yaml
-cat > /var/www/portal/services.yaml << 'YAMLEOF'
+cat > /var/www/portal/services.yaml << YAMLEOF
 services:
+  - name: OpenCode
+    port: 4096
+    description: AI-powered code editor
+    icon: code
+
+  - name: VibeTunnel
+    port: 4020
+    description: Tunnel service
+    icon: globe
+
   - name: noVNC
     port: 6080
     description: VNC web client
     icon: monitor
 
   - name: Code Server
-    port: CODESERVERPORT_PLACEHOLDER
+    port: $CODESERVERPORT
     description: VS Code in browser
     icon: terminal
 YAMLEOF
-
-# Replace placeholder with actual port
-sed -i "s/CODESERVERPORT_PLACEHOLDER/$CODESERVERPORT/" /var/www/portal/services.yaml
 
 # Create nginx config
 cat > /etc/nginx/sites-available/portal << NGINXEOF
