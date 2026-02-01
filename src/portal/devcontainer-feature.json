@@ -1,7 +1,7 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "DevDesk Portal with nginx reverse proxy for web services",
     "options": {
         "port": {
@@ -15,6 +15,7 @@
             "description": "Comma-separated services in format name:port:description:icon"
         }
     },
+    "postStartCommand": "/usr/local/bin/devdesk-portal-start",
     "installsAfter": [
         "ghcr.io/devcontainers/features/common-utils"
     ]

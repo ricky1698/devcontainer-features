@@ -31,5 +31,22 @@ user=$_REMOTE_USER
 environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME"
 CONFEOF
 
+# Create the start script (for postStartCommand)
+cat > /usr/local/bin/devdesk-vibetunnel-start << 'STARTEOF'
+#!/bin/bash
+# Ensure supervisord is running
+if ! pgrep -x supervisord > /dev/null; then
+    echo "→ Starting supervisord..."
+    sudo supervisord -c /etc/supervisor/supervisord.conf
+fi
+
+# Reload supervisor to pick up vibetunnel config
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start vibetunnel 2>/dev/null || true
+echo "→ VibeTunnel started"
+STARTEOF
+
+chmod +x /usr/local/bin/devdesk-vibetunnel-start
+
 echo "VibeTunnel installation complete!"
-echo "Start with: supervisorctl start vibetunnel"

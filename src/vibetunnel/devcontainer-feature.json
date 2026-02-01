@@ -1,7 +1,7 @@
 {
     "name": "VibeTunnel",
     "id": "vibetunnel",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "VibeTunnel MCP tunnel service with supervisor config",
     "options": {
         "noAuth": {
@@ -15,6 +15,7 @@
             "description": "Start VibeTunnel automatically via supervisor"
         }
     },
+    "postStartCommand": "/usr/local/bin/devdesk-vibetunnel-start",
     "installsAfter": [
         "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
     ]

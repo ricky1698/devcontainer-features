@@ -44,6 +44,23 @@ SCRIPTEOF
 
 chmod +x /usr/local/bin/devdesk-tailscale-setup
 
+# Create the start script (for postStartCommand)
+cat > /usr/local/bin/devdesk-tailscale-start << 'STARTEOF'
+#!/bin/bash
+# Start tailscaled daemon if not running
+if command -v tailscaled-devcontainer-start &> /dev/null; then
+    echo "→ Starting tailscaled daemon..."
+    sudo /usr/local/sbin/tailscaled-devcontainer-start
+fi
+
+# Run Tailscale setup
+if command -v devdesk-tailscale-setup &> /dev/null; then
+    devdesk-tailscale-setup
+fi
+STARTEOF
+
+chmod +x /usr/local/bin/devdesk-tailscale-start
+
 # Set environment variables for the script
 if [[ "$AUTOCONNECT" == "true" ]]; then
     echo "export TAILSCALE_AUTO_CONNECT=true" >> /etc/profile.d/devdesk-tailscale.sh

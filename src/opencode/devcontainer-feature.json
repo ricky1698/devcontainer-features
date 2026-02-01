@@ -1,7 +1,7 @@
 {
     "name": "OpenCode",
     "id": "opencode",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "OpenCode AI-powered code editor with supervisor config",
     "options": {
         "hostname": {
@@ -15,6 +15,7 @@
             "description": "Start OpenCode automatically via supervisor"
         }
     },
+    "postStartCommand": "/usr/local/bin/devdesk-opencode-start",
     "installsAfter": [
         "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
     ]
