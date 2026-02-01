@@ -48,18 +48,37 @@ chmod +x /usr/local/bin/devdesk-tailscale-setup
 cat > /usr/local/bin/devdesk-tailscale-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
 
+echo "→ [tailscale-setup] Entrypoint starting..."
+
+# Source profile.d scripts for environment variables
+if [ -f /etc/profile.d/devdesk-tailscale.sh ]; then
+    source /etc/profile.d/devdesk-tailscale.sh
+fi
+
+# Debug: check if TS_OAUTH_TOKEN is set
+if [ -n "${TS_OAUTH_TOKEN}" ]; then
+    echo "→ [tailscale-setup] TS_OAUTH_TOKEN is set"
+else
+    echo "→ [tailscale-setup] TS_OAUTH_TOKEN is NOT set"
+fi
+
 # Fallback: start tailscaled if not running (entrypoint chain may be broken by other features)
 if ! pgrep -x tailscaled > /dev/null; then
+    echo "→ [tailscale-setup] tailscaled not running, starting..."
     if command -v tailscaled-devcontainer-start &> /dev/null; then
-        echo "→ Starting tailscaled (entrypoint fallback)..."
         sudo /usr/local/sbin/tailscaled-devcontainer-start
     fi
+else
+    echo "→ [tailscale-setup] tailscaled already running"
 fi
 
 # Run Tailscale setup
 if command -v devdesk-tailscale-setup &> /dev/null; then
+    echo "→ [tailscale-setup] Running devdesk-tailscale-setup..."
     devdesk-tailscale-setup
 fi
+
+echo "→ [tailscale-setup] Entrypoint done"
 
 # Execute the next command in the chain
 exec "$@"

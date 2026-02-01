@@ -1,7 +1,7 @@
 {
     "name": "Tailscale Auto-Setup",
     "id": "tailscale-setup",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Automatic Tailscale setup with OAuth token from environment",
     "options": {
         "autoConnect": {
