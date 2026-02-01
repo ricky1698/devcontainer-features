@@ -1,7 +1,7 @@
 {
     "name": "Tailscale Auto-Setup",
     "id": "tailscale-setup",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Automatic Tailscale setup with OAuth token from environment",
     "options": {
         "autoConnect": {
@@ -20,7 +20,7 @@
             "description": "Accept routes from Tailscale"
         }
     },
-    "postStartCommand": "/usr/local/bin/devdesk-tailscale-start",
+    "entrypoint": "/usr/local/bin/devdesk-tailscale-entrypoint",
     "installsAfter": [
         "ghcr.io/tailscale/codespace/tailscale"
     ]

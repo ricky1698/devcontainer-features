@@ -166,9 +166,10 @@ stdout_logfile=/var/log/nginx-supervisor.log
 stderr_logfile=/var/log/nginx-supervisor.err.log
 SUPERVISOREOF
 
-# Create the start script (for postStartCommand)
-cat > /usr/local/bin/devdesk-portal-start << 'STARTEOF'
+# Create entrypoint script
+cat > /usr/local/bin/devdesk-portal-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
+
 # Ensure supervisord is running
 if ! pgrep -x supervisord > /dev/null; then
     echo "→ Starting supervisord..."
@@ -176,12 +177,14 @@ if ! pgrep -x supervisord > /dev/null; then
 fi
 
 # Reload supervisor to pick up nginx config
-sudo supervisorctl reread
-sudo supervisorctl update
+sudo supervisorctl reread 2>/dev/null || true
+sudo supervisorctl update 2>/dev/null || true
 sudo supervisorctl start nginx 2>/dev/null || true
-echo "→ Portal started"
-STARTEOF
 
-chmod +x /usr/local/bin/devdesk-portal-start
+# Execute the next command in the chain
+exec "$@"
+ENTRYPOINTEOF
+
+chmod +x /usr/local/bin/devdesk-portal-entrypoint
 
 echo "DevDesk Portal installation complete! (port $PORT)"

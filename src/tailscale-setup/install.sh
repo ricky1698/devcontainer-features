@@ -44,9 +44,10 @@ SCRIPTEOF
 
 chmod +x /usr/local/bin/devdesk-tailscale-setup
 
-# Create the start script (for postStartCommand)
-cat > /usr/local/bin/devdesk-tailscale-start << 'STARTEOF'
+# Create entrypoint script
+cat > /usr/local/bin/devdesk-tailscale-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
+
 # Fallback: start tailscaled if not running (entrypoint chain may be broken by other features)
 if ! pgrep -x tailscaled > /dev/null; then
     if command -v tailscaled-devcontainer-start &> /dev/null; then
@@ -59,9 +60,12 @@ fi
 if command -v devdesk-tailscale-setup &> /dev/null; then
     devdesk-tailscale-setup
 fi
-STARTEOF
 
-chmod +x /usr/local/bin/devdesk-tailscale-start
+# Execute the next command in the chain
+exec "$@"
+ENTRYPOINTEOF
+
+chmod +x /usr/local/bin/devdesk-tailscale-entrypoint
 
 # Set environment variables for the script
 if [[ "$AUTOCONNECT" == "true" ]]; then

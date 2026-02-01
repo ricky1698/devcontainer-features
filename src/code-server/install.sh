@@ -38,9 +38,10 @@ user=$_REMOTE_USER
 environment=HOME="$_REMOTE_USER_HOME"
 CONFEOF
 
-# Create the start script (for postStartCommand)
-cat > /usr/local/bin/devdesk-code-server-start << 'STARTEOF'
+# Create entrypoint script
+cat > /usr/local/bin/devdesk-code-server-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
+
 # Ensure supervisord is running
 if ! pgrep -x supervisord > /dev/null; then
     echo "→ Starting supervisord..."
@@ -48,12 +49,14 @@ if ! pgrep -x supervisord > /dev/null; then
 fi
 
 # Reload supervisor to pick up code-server config
-sudo supervisorctl reread
-sudo supervisorctl update
+sudo supervisorctl reread 2>/dev/null || true
+sudo supervisorctl update 2>/dev/null || true
 sudo supervisorctl start code-server 2>/dev/null || true
-echo "→ Code Server started"
-STARTEOF
 
-chmod +x /usr/local/bin/devdesk-code-server-start
+# Execute the next command in the chain
+exec "$@"
+ENTRYPOINTEOF
+
+chmod +x /usr/local/bin/devdesk-code-server-entrypoint
 
 echo "Code Server installation complete!"
