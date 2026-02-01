@@ -47,10 +47,12 @@ chmod +x /usr/local/bin/devdesk-tailscale-setup
 # Create the start script (for postStartCommand)
 cat > /usr/local/bin/devdesk-tailscale-start << 'STARTEOF'
 #!/bin/bash
-# Start tailscaled daemon if not running
-if command -v tailscaled-devcontainer-start &> /dev/null; then
-    echo "→ Starting tailscaled daemon..."
-    sudo /usr/local/sbin/tailscaled-devcontainer-start
+# Fallback: start tailscaled if not running (entrypoint chain may be broken by other features)
+if ! pgrep -x tailscaled > /dev/null; then
+    if command -v tailscaled-devcontainer-start &> /dev/null; then
+        echo "→ Starting tailscaled (entrypoint fallback)..."
+        sudo /usr/local/sbin/tailscaled-devcontainer-start
+    fi
 fi
 
 # Run Tailscale setup

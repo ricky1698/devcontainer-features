@@ -1,0 +1,39 @@
+{
+    "name": "Code Server",
+    "id": "code-server",
+    "version": "1.0.0",
+    "description": "VS Code in the browser (code-server) with proper entrypoint chaining",
+    "options": {
+        "port": {
+            "type": "string",
+            "default": "8888",
+            "description": "Port for code-server"
+        },
+        "host": {
+            "type": "string",
+            "default": "0.0.0.0",
+            "description": "Host to bind code-server"
+        },
+        "auth": {
+            "type": "string",
+            "enum": ["password", "none"],
+            "default": "none",
+            "description": "Authentication type"
+        },
+        "version": {
+            "type": "string",
+            "default": "",
+            "description": "Version of code-server to install (empty for latest)"
+        },
+        "extensions": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated list of VS Code extensions to install"
+        }
+    },
+    "postStartCommand": "/usr/local/bin/devdesk-code-server-start",
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils",
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
