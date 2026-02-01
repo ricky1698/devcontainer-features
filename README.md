@@ -8,7 +8,6 @@ A collection of dev container features for DevDesk development environments.
 |---------|-------------|
 | [devdesk-base](./src/devdesk-base) | Base environment with mise, CLI tools, and supervisor |
 | [portal](./src/portal) | DevDesk Portal with nginx for service discovery |
-| [tailscale-setup](./src/tailscale-setup) | Automatic Tailscale setup with OAuth token |
 | [vibetunnel](./src/vibetunnel) | VibeTunnel MCP tunnel service |
 | [opencode](./src/opencode) | OpenCode AI-powered code editor |
 
@@ -26,7 +25,6 @@ Add features to your `devcontainer.json`:
         "ghcr.io/ricky1698/devcontainer-features/portal:1": {
             "port": "8080"
         },
-        "ghcr.io/ricky1698/devcontainer-features/tailscale-setup:1": {},
         "ghcr.io/ricky1698/devcontainer-features/vibetunnel:1": {},
         "ghcr.io/ricky1698/devcontainer-features/opencode:1": {}
     }
@@ -58,15 +56,6 @@ Options:
 - `enableVnc`: Include VNC link (default: true)
 - `enableCodeServer`: Include code-server link (default: true)
 - `codeServerPort`: Code-server port for links (default: 8888)
-
-### tailscale-setup
-
-Automatic Tailscale configuration using `TS_OAUTH_TOKEN` environment variable.
-
-Options:
-- `autoConnect`: Auto-connect on start (default: true)
-- `enableSsh`: Enable Tailscale SSH (default: true)
-- `acceptRoutes`: Accept Tailscale routes (default: true)
 
 ### vibetunnel
 
