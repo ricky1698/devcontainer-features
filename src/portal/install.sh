@@ -158,11 +158,13 @@ IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 for service in "${SERVICE_ARRAY[@]}"; do
     IFS=':' read -r name port desc icon <<< "$service"
     # Create a URL-safe path from service name (lowercase, replace spaces with hyphens)
-    path=$(sed 's/.*/\L&/; s/[[:space:]]\+/-/g' <<< "$name")
+    path=$(tr '[:upper:]' '[:lower:]' <<< "$name" | sed 's/[[:space:]]\+/-/g')
     
     cat >> /etc/nginx/sites-available/portal << PROXYEOF
 
     # Reverse proxy for $name
+    # Note: trailing slash in proxy_pass strips the location prefix
+    # e.g., /$path/foo proxies to http://localhost:$port/foo
     location /$path/ {
         proxy_pass http://localhost:$port/;
         proxy_http_version 1.1;
