@@ -158,7 +158,7 @@ IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 for service in "${SERVICE_ARRAY[@]}"; do
     IFS=':' read -r name port desc icon <<< "$service"
     # Create a URL-safe path from service name (lowercase, replace spaces with hyphens)
-    path=$(echo "$name" | tr '[:upper:]' '[:lower:]' | sed 's/[[:space:]]\+/-/g')
+    path=$(echo "$name" | sed 's/.*/\L&/; s/[[:space:]]\+/-/g')
     
     cat >> /etc/nginx/sites-available/portal << PROXYEOF
 
