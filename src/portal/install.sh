@@ -144,7 +144,7 @@ server {
     location / {
         root /var/www/portal;
         index index.html;
-        try_files $uri $uri/ =404;
+        try_files \$uri \$uri/ =404;
     }
 
     location ~* \.(yaml|yml)$ {
@@ -158,7 +158,7 @@ IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 for service in "${SERVICE_ARRAY[@]}"; do
     IFS=':' read -r name port desc icon <<< "$service"
     # Create a URL-safe path from service name (lowercase, replace spaces with hyphens)
-    path=$(echo "$name" | sed 's/.*/\L&/; s/[[:space:]]\+/-/g')
+    path=$(sed 's/.*/\L&/; s/[[:space:]]\+/-/g' <<< "$name")
     
     cat >> /etc/nginx/sites-available/portal << PROXYEOF
 
