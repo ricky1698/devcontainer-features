@@ -1,14 +1,9 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.0.5",
-    "description": "DevDesk Portal with nginx reverse proxy for web services",
+    "version": "1.0.6",
+    "description": "DevDesk Portal with nginx reverse proxy for web services on port 80",
     "options": {
-        "port": {
-            "type": "string",
-            "default": "8080",
-            "description": "Port for the portal nginx server"
-        },
         "services": {
             "type": "string",
             "default": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal",

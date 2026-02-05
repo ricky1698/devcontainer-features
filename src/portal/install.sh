@@ -94,7 +94,9 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 data.services.forEach(service => {
                     const card = document.createElement('a');
                     card.className = 'service-card';
-                    card.href = `http://${location.hostname}:${service.port}`;
+                    // Create URL-safe path from service name
+                    const path = service.name.toLowerCase().replace(/\s+/g, '-');
+                    card.href = `/${path}/`;
                     card.target = '_blank';
                     card.innerHTML = `
                         <div class="service-header">
@@ -102,7 +104,7 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                             <div class="service-name">${service.name}</div>
                         </div>
                         <div class="service-desc">${service.description}</div>
-                        <span class="service-port">:${service.port}</span>
+                        <span class="service-port">/${path}/</span>
                     `;
                     container.appendChild(card);
                 });
@@ -132,22 +134,50 @@ for service in "${SERVICE_ARRAY[@]}"; do
 SERVICEEOF
 done
 
-# Create nginx config
-cat > /etc/nginx/sites-available/portal << NGINXEOF
+# Create nginx config as reverse proxy
+cat > /etc/nginx/sites-available/portal << 'NGINXEOF'
 server {
-    listen $PORT;
+    listen 80;
     server_name localhost;
 
-    root /var/www/portal;
-    index index.html;
-
+    # Portal UI - serve static files
     location / {
-        try_files \$uri \$uri/ =404;
+        root /var/www/portal;
+        index index.html;
+        try_files $uri $uri/ =404;
     }
 
-    location ~* \.(yaml|yml)\$ {
+    location ~* \.(yaml|yml)$ {
+        root /var/www/portal;
         add_header Content-Type text/yaml;
     }
+NGINXEOF
+
+# Add reverse proxy locations for each service
+IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
+for service in "${SERVICE_ARRAY[@]}"; do
+    IFS=':' read -r name port desc icon <<< "$service"
+    # Create a URL-safe path from service name (lowercase, replace spaces with hyphens)
+    path=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
+    
+    cat >> /etc/nginx/sites-available/portal << PROXYEOF
+
+    # Reverse proxy for $name
+    location /$path/ {
+        proxy_pass http://localhost:$port/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 86400;
+    }
+PROXYEOF
+done
+
+cat >> /etc/nginx/sites-available/portal << 'NGINXEOF'
 }
 NGINXEOF
 
@@ -187,4 +217,4 @@ ENTRYPOINTEOF
 
 chmod +x /usr/local/bin/devdesk-portal-entrypoint
 
-echo "DevDesk Portal installation complete! (port $PORT)"
+echo "DevDesk Portal installation complete! (port 80 - reverse proxy)"
