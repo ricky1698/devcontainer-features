@@ -135,7 +135,7 @@ SERVICEEOF
 done
 
 # Create nginx config as reverse proxy
-cat > /etc/nginx/sites-available/portal << 'NGINXEOF'
+cat > /etc/nginx/sites-available/portal << NGINXEOF
 server {
     listen 80;
     server_name localhost;
