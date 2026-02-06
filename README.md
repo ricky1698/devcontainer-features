@@ -22,9 +22,7 @@ Add features to your `devcontainer.json`:
         "ghcr.io/ricky1698/devcontainer-features/devdesk-base:1": {
             "packages": "node@lts,bun@1,gh@latest"
         },
-        "ghcr.io/ricky1698/devcontainer-features/portal:1": {
-            "port": "8080"
-        },
+        "ghcr.io/ricky1698/devcontainer-features/portal:1": {},
         "ghcr.io/ricky1698/devcontainer-features/vibetunnel:1": {},
         "ghcr.io/ricky1698/devcontainer-features/opencode:1": {}
     }
@@ -49,13 +47,12 @@ Options:
 
 ### portal
 
-A web portal for discovering and accessing DevDesk services.
+A web portal with nginx reverse proxy for discovering and accessing DevDesk services on port 80.
 
 Options:
-- `port`: Portal port (default: 8080)
-- `enableVnc`: Include VNC link (default: true)
-- `enableCodeServer`: Include code-server link (default: true)
-- `codeServerPort`: Code-server port for links (default: 8888)
+- `services`: Comma-separated services in format name:port:description:icon
+
+The portal acts as a reverse proxy, making services accessible through path-based URLs (e.g., `/code-server/`, `/novnc/`).
 
 ### vibetunnel
 

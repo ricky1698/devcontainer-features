@@ -15,7 +15,6 @@ jobs:
         features:
           - devdesk-base
           - portal
-          - tailscale-setup
           - vibetunnel
           - opencode
         baseImage:
