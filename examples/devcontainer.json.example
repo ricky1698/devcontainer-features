@@ -17,8 +17,8 @@
       "npmGlobalPackages": "node-pty,vibetunnel@1.0.0-beta.15.2"
     },
     "ghcr.io/ricky1698/devcontainer-features/portal:1": {
-      "port": "8080",
-      "codeServerPort": "8888"
+      "services": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal",
+      "links": "OpenCode:4096:AI-powered code editor:code"
     },
     "ghcr.io/ricky1698/devcontainer-features/tailscale-setup:1": {},
     "ghcr.io/ricky1698/devcontainer-features/vibetunnel:1": {},
