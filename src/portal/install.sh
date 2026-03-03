@@ -82,6 +82,12 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
     <div id="services" class="services">
         <div class="loading">Loading services...</div>
     </div>
+    <div id="links-section" style="display: none; margin-top: 3rem;">
+        <h2 style="text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: #e94560;">Direct Links</h2>
+        <div id="links" class="services">
+            <div class="loading">Loading links...</div>
+        </div>
+    </div>
     <script>
         const icons = { code: '💻', globe: '🌐', monitor: '🖥️', bot: '🤖', terminal: '⌨️', default: '🔧' };
         async function loadServices() {
@@ -112,7 +118,44 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 container.innerHTML = `<div class="error">Failed to load services: ${err.message}</div>`;
             }
         }
+        async function loadLinks() {
+            const container = document.getElementById('links');
+            const section = document.getElementById('links-section');
+            try {
+                const response = await fetch('/links.yaml');
+                if (!response.ok) {
+                    section.style.display = 'none';
+                    return;
+                }
+                const text = await response.text();
+                const data = jsyaml.load(text);
+                if (!data || !data.links || data.links.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+                section.style.display = 'block';
+                container.innerHTML = '';
+                data.links.forEach(link => {
+                    const card = document.createElement('a');
+                    card.className = 'service-card';
+                    card.href = `http://${window.location.hostname}:${link.port}`;
+                    card.target = '_blank';
+                    card.innerHTML = `
+                        <div class="service-header">
+                            <div class="service-icon">${icons[link.icon] || icons.default}</div>
+                            <div class="service-name">${link.name}</div>
+                        </div>
+                        <div class="service-desc">${link.description}</div>
+                        <span class="service-port">${window.location.hostname}:${link.port}</span>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                section.style.display = 'none';
+            }
+        }
         loadServices();
+        loadLinks();
     </script>
 </body>
 </html>
@@ -133,6 +176,26 @@ for service in "${SERVICE_ARRAY[@]}"; do
 
 SERVICEEOF
 done
+
+# Create links.yaml from LINKS parameter (for services that don't work behind reverse proxy)
+# Format: name:port:description:icon,name:port:description:icon,...
+if [ -n "$LINKS" ]; then
+    echo "links:" > /var/www/portal/links.yaml
+    IFS=',' read -ra LINK_ARRAY <<< "$LINKS"
+    for link in "${LINK_ARRAY[@]}"; do
+        IFS=':' read -r name port desc icon <<< "$link"
+        cat >> /var/www/portal/links.yaml << LINKEOF
+  - name: $name
+    port: $port
+    description: $desc
+    icon: $icon
+
+LINKEOF
+    done
+else
+    # Create empty links.yaml
+    echo "links: []" > /var/www/portal/links.yaml
+fi
 
 # Create nginx config as reverse proxy
 cat > /etc/nginx/sites-available/portal << NGINXEOF

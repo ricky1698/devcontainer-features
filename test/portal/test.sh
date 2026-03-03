@@ -44,6 +44,14 @@ fi
 
 echo "Portal services.yaml found"
 
+# Test that links.yaml exists (can be empty)
+if [ ! -f /var/www/portal/links.yaml ]; then
+    echo "ERROR: Portal links.yaml not found"
+    exit 1
+fi
+
+echo "Portal links.yaml found"
+
 # Test that the entrypoint exists
 if [ ! -f /usr/local/bin/devdesk-portal-entrypoint ]; then
     echo "ERROR: Portal entrypoint not found"

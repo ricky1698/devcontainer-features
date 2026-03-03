@@ -8,6 +8,11 @@
             "type": "string",
             "default": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal",
             "description": "Comma-separated services in format name:port:description:icon"
+        },
+        "links": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated direct links in format name:port:description:icon (for services that don't work behind reverse proxy)"
         }
     },
     "entrypoint": "/usr/local/bin/devdesk-portal-entrypoint",
