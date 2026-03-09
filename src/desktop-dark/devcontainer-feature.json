@@ -1,0 +1,55 @@
+{
+    "id": "desktop-dark",
+    "version": "1.0.0",
+    "name": "Desktop (Dark Theme)",
+    "description": "Lightweight Fluxbox desktop with dark theme, accessible via VNC viewer or web browser. Based on devcontainers/features/desktop-lite with built-in dark mode support.",
+    "options": {
+        "noVncVersion": {
+            "type": "string",
+            "proposals": ["1.6.0"],
+            "default": "1.6.0",
+            "description": "The noVNC version to use"
+        },
+        "password": {
+            "type": "string",
+            "proposals": ["vscode", "codespaces", "password", "noPassword"],
+            "default": "vscode",
+            "description": "Desktop connection password. Use \"noPassword\" for localhost-only access without authentication"
+        },
+        "webPort": {
+            "type": "string",
+            "proposals": ["6080"],
+            "default": "6080",
+            "description": "Port for the VNC web client (noVNC)"
+        },
+        "vncPort": {
+            "type": "string",
+            "proposals": ["5901"],
+            "default": "5901",
+            "description": "Port for the desktop VNC server (TigerVNC)"
+        },
+        "backgroundColor": {
+            "type": "string",
+            "default": "#1E1E1E",
+            "description": "Desktop background color (hex)"
+        },
+        "gtkTheme": {
+            "type": "string",
+            "default": "Adwaita-dark",
+            "description": "GTK theme name for applications"
+        },
+        "gtkIconTheme": {
+            "type": "string",
+            "default": "Adwaita",
+            "description": "GTK icon theme name"
+        }
+    },
+    "init": true,
+    "entrypoint": "/usr/local/share/desktop-init.sh",
+    "containerEnv": {
+        "DISPLAY": ":1"
+    },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}
