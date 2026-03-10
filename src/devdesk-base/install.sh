@@ -82,4 +82,26 @@ if [[ "$INSTALLMISE" == "true" ]]; then
     fi
 fi
 
+# Install cargo packages if requested
+if [[ -n "$CARGOPACKAGES" ]]; then
+    echo "Installing cargo packages: $CARGOPACKAGES"
+
+    # Find cargo: mise shims first, then ~/.cargo/bin
+    CARGO_BIN="$_REMOTE_USER_HOME/.local/share/mise/shims/cargo"
+    if [[ ! -x "$CARGO_BIN" ]]; then
+        CARGO_BIN="$_REMOTE_USER_HOME/.cargo/bin/cargo"
+    fi
+
+    if [[ ! -x "$CARGO_BIN" ]]; then
+        echo "Warning: cargo not found, skipping cargo packages. Install rust via mise packages option first."
+    else
+        IFS=',' read -ra CARGO_ARRAY <<< "$CARGOPACKAGES"
+        for pkg in "${CARGO_ARRAY[@]}"; do
+            echo "Installing cargo package: $pkg..."
+            su - "$_REMOTE_USER" -c "$CARGO_BIN install $pkg" || echo "Warning: Failed to install cargo package $pkg"
+        done
+        chown -R "$_REMOTE_USER:$_REMOTE_USER" "$_REMOTE_USER_HOME/.cargo" 2>/dev/null || true
+    fi
+fi
+
 echo "DevDesk Base installation complete!"
