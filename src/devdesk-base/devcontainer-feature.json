@@ -1,7 +1,7 @@
 {
     "name": "DevDesk Base",
     "id": "devdesk-base",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Base development environment with mise, common CLI tools, and supervisor",
     "options": {
         "installMise": {
@@ -16,18 +16,33 @@
         },
         "packages": {
             "type": "string",
-            "default": "bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,rust@latest,dotnet@10",
+            "default": "bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pnpm@latest,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,k9s@latest,kind@latest,mprocs@latest,rust@latest,dotnet@10",
             "description": "Comma-separated list of mise packages to install (format: name@version)"
         },
         "npmGlobalPackages": {
             "type": "string",
-            "default": "node-pty,vibetunnel@1.0.0-beta.15.2",
+            "default": "@playwright/cli@latest",
             "description": "Comma-separated list of npm global packages to install"
         },
         "cargoPackages": {
             "type": "string",
-            "default": "",
+            "default": "worktrunk",
             "description": "Comma-separated list of cargo packages to install (e.g. cargo-watch,tokei)"
+        },
+        "extraPackages": {
+            "type": "string",
+            "default": "",
+            "description": "Extra mise packages to install on top of defaults (format: name@version)"
+        },
+        "extraNpmGlobalPackages": {
+            "type": "string",
+            "default": "",
+            "description": "Extra npm global packages to install on top of defaults"
+        },
+        "extraCargoPackages": {
+            "type": "string",
+            "default": "",
+            "description": "Extra cargo packages to install on top of defaults"
         }
     },
     "installsAfter": [

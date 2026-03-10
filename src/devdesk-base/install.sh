@@ -55,20 +55,28 @@ if [[ "$INSTALLMISE" == "true" ]]; then
         echo 'export NODE_OPTIONS="--no-network-family-autoselection"' >> "$_REMOTE_USER_HOME/.bashrc"
         echo 'export NODE_OPTIONS="--no-network-family-autoselection"' >> "$_REMOTE_USER_HOME/.zshrc"
         
-        # Install packages as remote user
-        if [[ -n "$PACKAGES" ]]; then
-            echo "Installing mise packages: $PACKAGES"
-            IFS=',' read -ra PACKAGE_ARRAY <<< "$PACKAGES"
+        # Install mise packages (defaults + extra)
+        ALL_PACKAGES=""
+        [[ -n "$PACKAGES" ]] && ALL_PACKAGES="$PACKAGES"
+        [[ -n "$EXTRAPACKAGES" ]] && ALL_PACKAGES="${ALL_PACKAGES:+$ALL_PACKAGES,}$EXTRAPACKAGES"
+
+        if [[ -n "$ALL_PACKAGES" ]]; then
+            echo "Installing mise packages: $ALL_PACKAGES"
+            IFS=',' read -ra PACKAGE_ARRAY <<< "$ALL_PACKAGES"
             for package in "${PACKAGE_ARRAY[@]}"; do
                 echo "Installing $package..."
                 su - "$_REMOTE_USER" -c "$MISE_BIN use -g $package" || echo "Warning: Failed to install $package"
             done
         fi
-        
-        # Install npm global packages
-        if [[ -n "$NPMGLOBALPACKAGES" ]]; then
-            echo "Installing npm global packages: $NPMGLOBALPACKAGES"
-            IFS=',' read -ra NPM_ARRAY <<< "$NPMGLOBALPACKAGES"
+
+        # Install npm global packages (defaults + extra)
+        ALL_NPM_PACKAGES=""
+        [[ -n "$NPMGLOBALPACKAGES" ]] && ALL_NPM_PACKAGES="$NPMGLOBALPACKAGES"
+        [[ -n "$EXTRANPMGLOBALPACKAGES" ]] && ALL_NPM_PACKAGES="${ALL_NPM_PACKAGES:+$ALL_NPM_PACKAGES,}$EXTRANPMGLOBALPACKAGES"
+
+        if [[ -n "$ALL_NPM_PACKAGES" ]]; then
+            echo "Installing npm global packages: $ALL_NPM_PACKAGES"
+            IFS=',' read -ra NPM_ARRAY <<< "$ALL_NPM_PACKAGES"
             for npm_package in "${NPM_ARRAY[@]}"; do
                 echo "Installing npm package: $npm_package..."
                 su - "$_REMOTE_USER" -c "$MISE_BIN exec node@lts -- npm install -g $npm_package" || echo "Warning: Failed to install $npm_package"
@@ -82,9 +90,13 @@ if [[ "$INSTALLMISE" == "true" ]]; then
     fi
 fi
 
-# Install cargo packages if requested
-if [[ -n "$CARGOPACKAGES" ]]; then
-    echo "Installing cargo packages: $CARGOPACKAGES"
+# Install cargo packages (defaults + extra)
+ALL_CARGO_PACKAGES=""
+[[ -n "$CARGOPACKAGES" ]] && ALL_CARGO_PACKAGES="$CARGOPACKAGES"
+[[ -n "$EXTRACARGOPACKAGES" ]] && ALL_CARGO_PACKAGES="${ALL_CARGO_PACKAGES:+$ALL_CARGO_PACKAGES,}$EXTRACARGOPACKAGES"
+
+if [[ -n "$ALL_CARGO_PACKAGES" ]]; then
+    echo "Installing cargo packages: $ALL_CARGO_PACKAGES"
 
     # Find cargo: mise shims first, then ~/.cargo/bin
     CARGO_BIN="$_REMOTE_USER_HOME/.local/share/mise/shims/cargo"
@@ -95,7 +107,7 @@ if [[ -n "$CARGOPACKAGES" ]]; then
     if [[ ! -x "$CARGO_BIN" ]]; then
         echo "Warning: cargo not found, skipping cargo packages. Install rust via mise packages option first."
     else
-        IFS=',' read -ra CARGO_ARRAY <<< "$CARGOPACKAGES"
+        IFS=',' read -ra CARGO_ARRAY <<< "$ALL_CARGO_PACKAGES"
         for pkg in "${CARGO_ARRAY[@]}"; do
             echo "Installing cargo package: $pkg..."
             su - "$_REMOTE_USER" -c "$CARGO_BIN install $pkg" || echo "Warning: Failed to install cargo package $pkg"
