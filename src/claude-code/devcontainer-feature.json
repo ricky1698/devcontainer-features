@@ -1,10 +1,10 @@
 {
     "name": "Claude Code",
     "id": "claude-code",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Install Claude Code (cc) via official installer",
     "options": {},
     "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
     ]
 }

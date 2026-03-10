@@ -1,10 +1,10 @@
 {
     "name": "Vivaldi",
     "id": "vivaldi",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Install Vivaldi browser via official apt repository",
     "options": {},
     "installsAfter": [
-        "ghcr.io/devcontainers/features/common-utils"
+        "ghcr.io/ricky1698/devcontainer-features/desktop-dark"
     ]
 }
