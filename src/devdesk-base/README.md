@@ -17,8 +17,9 @@ Base development environment with mise, common CLI tools, and supervisor
 |-----|-----|-----|-----|
 | installMise | Install mise (runtime manager) | boolean | true |
 | installSupervisor | Install supervisor process manager | boolean | true |
-| packages | Comma-separated list of mise packages to install (format: name@version) | string | bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,claude@latest |
+| packages | Comma-separated list of mise packages to install (format: name@version) | string | bun@1,eza@latest,fd@10,fzf@0.61,gh@latest,lazygit@latest,just@1,neovim@latest,node@lts,pre-commit@latest,rg@14,tmux@3,uv@latest,yazi@latest,zoxide@latest,kubectl@1,helm@3,rust@latest,dotnet@10 |
 | npmGlobalPackages | Comma-separated list of npm global packages to install | string | node-pty,vibetunnel@1.0.0-beta.15.2 |
+| cargoPackages | Comma-separated list of cargo packages to install (e.g. cargo-watch,tokei) | string | - |
 
 
 
