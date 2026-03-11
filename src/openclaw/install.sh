@@ -18,7 +18,7 @@ fi
 
 cat > /etc/supervisor/conf.d/clawdbot.conf << CONFEOF
 [program:clawdbot]
-command=$_REMOTE_USER_HOME/.local/share/mise/shims/openclaw gateway
+command=$_REMOTE_USER_HOME/.local/share/mise/shims/openclaw gateway --allow-unconfigured
 directory=$_REMOTE_USER_HOME
 autostart=$AUTOSTART_VALUE
 startsecs=5

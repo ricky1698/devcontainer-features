@@ -1,7 +1,7 @@
 {
     "name": "OpenClaw",
     "id": "openclaw",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "OpenClaw gateway service with supervisor config",
     "options": {
         "autostart": {
