@@ -4,7 +4,7 @@ set -e
 echo "Installing OpenClaw..."
 
 # Install openclaw
-$_REMOTE_USER_HOME/.local/share/mise exec node@lts -- npm install -g openclaw
+$_REMOTE_USER_HOME/.local/share/mise/shims/npm install -g openclaw
 
 # Ensure supervisor config directory exists
 mkdir -p /etc/supervisor/conf.d
@@ -17,7 +17,7 @@ fi
 
 cat > /etc/supervisor/conf.d/clawdbot.conf << CONFEOF
 [program:clawdbot]
-command=$_REMOTE_USER_HOME/.local/share/mise exec node@lts -- openclaw gateway
+command=$_REMOTE_USER_HOME/.local/share/mise/shims/openclaw gateway
 directory=$_REMOTE_USER_HOME
 autostart=$AUTOSTART_VALUE
 startsecs=5
