@@ -4,7 +4,8 @@ set -e
 echo "Installing OpenClaw..."
 
 # Install openclaw
-$_REMOTE_USER_HOME/.local/share/mise/shims/npm install -g openclaw
+MISE_BIN="$_REMOTE_USER_HOME/.local/bin/mise"
+su - "$_REMOTE_USER" -c "$MISE_BIN exec node@lts -- npm install -g openclaw"
 
 # Ensure supervisor config directory exists
 mkdir -p /etc/supervisor/conf.d
