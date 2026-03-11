@@ -3,8 +3,8 @@ set -e
 
 echo "Installing OpenClaw..."
 
-# Install openclaw via official installer
-curl -fsSL https://openclaw.ai/install.sh | bash
+# Install openclaw
+$_REMOTE_USER_HOME/.local/share/mise exec node@lts -- npm install -g openclaw
 
 # Ensure supervisor config directory exists
 mkdir -p /etc/supervisor/conf.d
@@ -17,7 +17,7 @@ fi
 
 cat > /etc/supervisor/conf.d/clawdbot.conf << CONFEOF
 [program:clawdbot]
-command=/usr/local/bin/mise exec node@lts -- openclaw gateway
+command=$_REMOTE_USER_HOME/.local/share/mise exec node@lts -- openclaw gateway
 directory=$_REMOTE_USER_HOME
 autostart=$AUTOSTART_VALUE
 startsecs=5
@@ -26,7 +26,7 @@ startretries=3
 stderr_logfile=/var/log/clawdbot.err.log
 stdout_logfile=/var/log/clawdbot.log
 user=$_REMOTE_USER
-environment=PATH="$_REMOTE_USER_HOME/.local/bin:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",NODE_OPTIONS="--no-network-family-autoselection"
+environment=PATH="$_REMOTE_USER_HOME/.local/bin:/usr/local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",NODE_OPTIONS="--no-network-family-autoselection"
 CONFEOF
 
 # Create entrypoint script
