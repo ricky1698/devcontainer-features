@@ -1,0 +1,17 @@
+{
+    "name": "OpenClaw",
+    "id": "openclaw",
+    "version": "1.0.0",
+    "description": "OpenClaw gateway service with supervisor config",
+    "options": {
+        "autostart": {
+            "type": "boolean",
+            "default": true,
+            "description": "Start OpenClaw gateway automatically via supervisor"
+        }
+    },
+    "entrypoint": "/usr/local/bin/devdesk-openclaw-entrypoint",
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
