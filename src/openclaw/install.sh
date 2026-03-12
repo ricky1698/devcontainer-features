@@ -16,16 +16,16 @@ if [[ "$AUTOSTART" == "true" ]]; then
     AUTOSTART_VALUE="true"
 fi
 
-cat > /etc/supervisor/conf.d/clawdbot.conf << CONFEOF
-[program:clawdbot]
+cat > /etc/supervisor/conf.d/openclaw.conf << CONFEOF
+[program:openclaw]
 command=$_REMOTE_USER_HOME/.local/share/mise/shims/openclaw gateway --allow-unconfigured
 directory=$_REMOTE_USER_HOME
 autostart=$AUTOSTART_VALUE
 startsecs=5
 autorestart=true
 startretries=3
-stderr_logfile=/var/log/clawdbot.err.log
-stdout_logfile=/var/log/clawdbot.log
+stderr_logfile=/var/log/openclaw.err.log
+stdout_logfile=/var/log/openclaw.log
 user=$_REMOTE_USER
 environment=PATH="$_REMOTE_USER_HOME/.local/bin:/usr/local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",NODE_OPTIONS="--no-network-family-autoselection"
 CONFEOF
@@ -40,10 +40,10 @@ if ! pgrep -x supervisord > /dev/null; then
     sudo supervisord -c /etc/supervisor/supervisord.conf
 fi
 
-# Reload supervisor to pick up clawdbot config
+# Reload supervisor to pick up openclaw config
 sudo supervisorctl reread 2>/dev/null || true
 sudo supervisorctl update 2>/dev/null || true
-sudo supervisorctl start clawdbot 2>/dev/null || true
+sudo supervisorctl start openclaw 2>/dev/null || true
 
 # Execute the next command in the chain
 exec "$@"
