@@ -54,7 +54,7 @@ chmod +x "$binary_path"
 
 rm -f "$binary_path"
 
-chown -R "$_REMOTE_USER:$_REMOTE_USER" "$_REMOTE_USER_HOME/.local" "$_REMOTE_USER_HOME/.claude" 2>/dev/null || true
+chown -R "$_REMOTE_USER:$_REMOTE_USER" "$_REMOTE_USER_HOME/.local" "$_REMOTE_USER_HOME/.claude" "$_REMOTE_USER_HOME/.cache" 2>/dev/null || true
 
 echo "Claude Code installation complete!"
 echo "  Binary: $_REMOTE_USER_HOME/.local/bin/claude"
