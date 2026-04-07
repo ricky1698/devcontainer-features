@@ -3,11 +3,42 @@ set -e
 
 echo "Installing DevDesk Portal..."
 
+TTYD=${TTYD:-"true"}
+TTYDPORT=${TTYDPORT:-"7681"}
+
 # Install nginx if not present
 if ! command -v nginx &> /dev/null; then
     apt-get update
     apt-get install -y nginx
-    rm -rf /var/lib/apt/lists/*
+fi
+
+# Install ttyd if enabled
+if [ "$TTYD" = "true" ] && ! command -v ttyd &> /dev/null; then
+    echo "Installing ttyd..."
+    apt-get update 2>/dev/null || true
+    apt-get install -y ttyd || {
+        # Fallback: download binary for current arch
+        ARCH=$(dpkg --print-architecture)
+        case "$ARCH" in
+            amd64) TTYD_ARCH="x86_64" ;;
+            arm64) TTYD_ARCH="aarch64" ;;
+            *) echo "Unsupported arch: $ARCH"; exit 1 ;;
+        esac
+        TTYD_VERSION=$(curl -s https://api.github.com/repos/tsl0922/ttyd/releases/latest | grep tag_name | cut -d'"' -f4)
+        curl -fsSL "https://github.com/tsl0922/ttyd/releases/download/${TTYD_VERSION}/ttyd.${TTYD_ARCH}" -o /usr/local/bin/ttyd
+        chmod +x /usr/local/bin/ttyd
+    }
+fi
+
+rm -rf /var/lib/apt/lists/*
+
+# If ttyd enabled, auto-append Terminal service to SERVICES
+if [ "$TTYD" = "true" ]; then
+    if [ -n "$SERVICES" ]; then
+        SERVICES="${SERVICES},Terminal:${TTYDPORT}:Web terminal:terminal"
+    else
+        SERVICES="Terminal:${TTYDPORT}:Web terminal:terminal"
+    fi
 fi
 
 # Create portal directory
@@ -22,15 +53,18 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevDesk Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
-            padding: 2rem;
+            display: flex;
+            flex-direction: column;
             color: #fff;
         }
+        .portal-content { padding: 2rem; flex-shrink: 0; }
         h1 { text-align: center; margin-bottom: 2rem; font-size: 2rem; color: #e94560; }
         .services {
             display: grid;
@@ -48,6 +82,7 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
             text-decoration: none;
             color: inherit;
             display: block;
+            cursor: pointer;
         }
         .service-card:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -75,21 +110,185 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
         }
         .loading { text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.6); }
         .error { text-align: center; padding: 2rem; color: #e94560; }
+
+        /* Terminal panel */
+        #terminal-panel {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            border-top: 2px solid #e94560;
+            min-height: 0;
+        }
+        #terminal-panel.open { display: flex; }
+        .term-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+        }
+        .term-toolbar .term-title { flex: 1; color: #e94560; font-weight: 600; }
+        .term-toolbar .term-status { font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); }
+        .btn-term-close {
+            background: rgba(233, 69, 96, 0.2);
+            border: 1px solid rgba(233, 69, 96, 0.3);
+            color: #e94560;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-term-close:hover { background: rgba(233, 69, 96, 0.4); }
+        #terminal-container {
+            flex: 1;
+            padding: 4px;
+            background: #000;
+            min-height: 300px;
+        }
+        #terminal-container .xterm { height: 100%; }
     </style>
 </head>
 <body>
-    <h1>DevDesk Portal</h1>
-    <div id="services" class="services">
-        <div class="loading">Loading services...</div>
-    </div>
-    <div id="links-section" style="display: none; margin-top: 3rem;">
-        <h2 style="text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: #e94560;">Direct Links</h2>
-        <div id="links" class="services">
-            <div class="loading">Loading links...</div>
+    <div class="portal-content">
+        <h1>DevDesk Portal</h1>
+        <div id="services" class="services">
+            <div class="loading">Loading services...</div>
+        </div>
+        <div id="links-section" style="display: none; margin-top: 3rem;">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; font-size: 1.5rem; color: #e94560;">Direct Links</h2>
+            <div id="links" class="services">
+                <div class="loading">Loading links...</div>
+            </div>
         </div>
     </div>
+
+    <!-- Terminal panel -->
+    <div id="terminal-panel">
+        <div class="term-toolbar">
+            <span class="term-title" id="term-title">Terminal</span>
+            <span class="term-status" id="term-status"></span>
+            <button class="btn-term-close" id="term-close">Close</button>
+        </div>
+        <div id="terminal-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
     <script>
         const icons = { code: '💻', globe: '🌐', monitor: '🖥️', bot: '🤖', terminal: '⌨️', default: '🔧' };
+
+        // --- Terminal (ttyd protocol) ---
+        const TTYD_OUTPUT = '0';
+        const TTYD_SET_TITLE = '1';
+        const TTYD_SET_PREFS = '2';
+        const TTYD_INPUT = '0';
+        const TTYD_RESIZE = '1';
+
+        let term = null;
+        let termSocket = null;
+        let fitAddon = null;
+
+        function openTerminal(wsPath, title) {
+            closeTerminal();
+            const panel = document.getElementById('terminal-panel');
+            panel.classList.add('open');
+            document.getElementById('term-title').textContent = title || 'Terminal';
+            document.getElementById('term-status').textContent = 'Connecting...';
+
+            term = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: "Consolas, 'Liberation Mono', Menlo, monospace",
+                theme: { background: '#000000', foreground: '#e2e8f0' },
+            });
+            fitAddon = new FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            term.open(document.getElementById('terminal-container'));
+            fitAddon.fit();
+
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + location.host + wsPath;
+
+            termSocket = new WebSocket(wsUrl, ['tty']);
+
+            termSocket.onopen = () => {
+                termSocket.send(JSON.stringify({ AuthToken: '' }));
+                document.getElementById('term-status').textContent = 'Connected';
+                term.focus();
+                setTimeout(() => sendResize(), 100);
+            };
+
+            termSocket.onmessage = (evt) => {
+                const raw = evt.data;
+                if (raw instanceof Blob) {
+                    raw.text().then(handleMsg);
+                } else {
+                    handleMsg(raw);
+                }
+            };
+
+            function handleMsg(data) {
+                if (!data || data.length === 0) return;
+                const type = data[0], payload = data.slice(1);
+                switch (type) {
+                    case TTYD_OUTPUT: term.write(payload); break;
+                    case TTYD_SET_TITLE:
+                        document.getElementById('term-title').textContent = payload || title;
+                        break;
+                    case TTYD_SET_PREFS: break;
+                }
+            }
+
+            termSocket.onclose = (evt) => {
+                document.getElementById('term-status').textContent = 'Disconnected (code: ' + evt.code + ')';
+                term.write('\r\n\x1b[90m--- connection closed ---\x1b[0m\r\n');
+            };
+
+            termSocket.onerror = () => {
+                document.getElementById('term-status').textContent = 'Connection failed';
+                term.write('\r\n\x1b[31mFailed to connect to terminal.\x1b[0m\r\n');
+            };
+
+            term.onData((data) => {
+                if (termSocket && termSocket.readyState === WebSocket.OPEN) {
+                    termSocket.send(TTYD_INPUT + data);
+                }
+            });
+
+            function sendResize() {
+                if (termSocket && termSocket.readyState === WebSocket.OPEN && term) {
+                    termSocket.send(TTYD_RESIZE + JSON.stringify({ columns: term.cols, rows: term.rows }));
+                }
+            }
+
+            term.onResize(({ cols, rows }) => {
+                if (termSocket && termSocket.readyState === WebSocket.OPEN) {
+                    termSocket.send(TTYD_RESIZE + JSON.stringify({ columns: cols, rows: rows }));
+                }
+            });
+
+            const resizeObs = new ResizeObserver(() => { if (fitAddon) fitAddon.fit(); });
+            resizeObs.observe(document.getElementById('terminal-container'));
+            term._resizeObs = resizeObs;
+        }
+
+        function closeTerminal() {
+            if (termSocket) { termSocket.close(); termSocket = null; }
+            if (term) {
+                if (term._resizeObs) term._resizeObs.disconnect();
+                term.dispose();
+                term = null;
+            }
+            fitAddon = null;
+            document.getElementById('terminal-panel').classList.remove('open');
+            document.getElementById('terminal-container').innerHTML = '';
+        }
+
+        document.getElementById('term-close').addEventListener('click', closeTerminal);
+
+        // --- Services ---
         async function loadServices() {
             const container = document.getElementById('services');
             try {
@@ -98,35 +297,40 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 const data = jsyaml.load(text);
                 container.innerHTML = '';
                 data.services.forEach(service => {
+                    const path = service.name.toLowerCase().replace(/\s+/g, '-');
+                    const isTerminal = service.icon === 'terminal';
                     const card = document.createElement('a');
                     card.className = 'service-card';
-                    // Create URL-safe path from service name
-                    const path = service.name.toLowerCase().replace(/\s+/g, '-');
-                    card.href = `/${path}/`;
-                    card.target = '_blank';
-                    card.innerHTML = `
-                        <div class="service-header">
-                            <div class="service-icon">${icons[service.icon] || icons.default}</div>
-                            <div class="service-name">${service.name}</div>
-                        </div>
-                        <div class="service-desc">${service.description}</div>
-                        <span class="service-port">/${path}/</span>
-                    `;
+                    if (isTerminal) {
+                        card.href = '#';
+                        card.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            openTerminal('/' + path + '/ws', service.name);
+                        });
+                    } else {
+                        card.href = '/' + path + '/';
+                        card.target = '_blank';
+                    }
+                    card.innerHTML =
+                        '<div class="service-header">' +
+                            '<div class="service-icon">' + (icons[service.icon] || icons.default) + '</div>' +
+                            '<div class="service-name">' + service.name + '</div>' +
+                        '</div>' +
+                        '<div class="service-desc">' + service.description + '</div>' +
+                        '<span class="service-port">/' + path + '/</span>';
                     container.appendChild(card);
                 });
             } catch (err) {
-                container.innerHTML = `<div class="error">Failed to load services: ${err.message}</div>`;
+                container.innerHTML = '<div class="error">Failed to load services: ' + err.message + '</div>';
             }
         }
+
         async function loadLinks() {
             const container = document.getElementById('links');
             const section = document.getElementById('links-section');
             try {
                 const response = await fetch('/links.yaml');
-                if (!response.ok) {
-                    section.style.display = 'none';
-                    return;
-                }
+                if (!response.ok) { section.style.display = 'none'; return; }
                 const text = await response.text();
                 const data = jsyaml.load(text);
                 if (!data || !data.links || data.links.length === 0) {
@@ -138,22 +342,22 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 data.links.forEach(link => {
                     const card = document.createElement('a');
                     card.className = 'service-card';
-                    card.href = `http://${window.location.hostname}:${link.port}`;
+                    card.href = 'http://' + window.location.hostname + ':' + link.port;
                     card.target = '_blank';
-                    card.innerHTML = `
-                        <div class="service-header">
-                            <div class="service-icon">${icons[link.icon] || icons.default}</div>
-                            <div class="service-name">${link.name}</div>
-                        </div>
-                        <div class="service-desc">${link.description}</div>
-                        <span class="service-port">${window.location.hostname}:${link.port}</span>
-                    `;
+                    card.innerHTML =
+                        '<div class="service-header">' +
+                            '<div class="service-icon">' + (icons[link.icon] || icons.default) + '</div>' +
+                            '<div class="service-name">' + link.name + '</div>' +
+                        '</div>' +
+                        '<div class="service-desc">' + link.description + '</div>' +
+                        '<span class="service-port">' + window.location.hostname + ':' + link.port + '</span>';
                     container.appendChild(card);
                 });
             } catch (err) {
                 section.style.display = 'none';
             }
         }
+
         loadServices();
         loadLinks();
     </script>
@@ -261,6 +465,20 @@ stdout_logfile=/var/log/nginx-supervisor.log
 stderr_logfile=/var/log/nginx-supervisor.err.log
 SUPERVISOREOF
 
+# Create supervisor config for ttyd if enabled
+if [ "$TTYD" = "true" ]; then
+    TTYD_BIN=$(command -v ttyd)
+    cat > /etc/supervisor/conf.d/ttyd.conf << TTYDEOF
+[program:ttyd]
+command=${TTYD_BIN} -W -p ${TTYDPORT} -i 127.0.0.1 bash
+autostart=true
+autorestart=true
+stdout_logfile=/var/log/ttyd-supervisor.log
+stderr_logfile=/var/log/ttyd-supervisor.err.log
+user=vscode
+TTYDEOF
+fi
+
 # Create entrypoint script
 cat > /usr/local/bin/devdesk-portal-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
@@ -271,10 +489,10 @@ if ! pgrep -x supervisord > /dev/null; then
     sudo supervisord -c /etc/supervisor/supervisord.conf
 fi
 
-# Reload supervisor to pick up nginx config
+# Reload supervisor to pick up all configs
 sudo supervisorctl reread 2>/dev/null || true
 sudo supervisorctl update 2>/dev/null || true
-sudo supervisorctl start nginx 2>/dev/null || true
+sudo supervisorctl start all 2>/dev/null || true
 
 # Execute the next command in the chain
 exec "$@"
