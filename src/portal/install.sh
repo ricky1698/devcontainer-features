@@ -470,12 +470,14 @@ if [ "$TTYD" = "true" ]; then
     TTYD_BIN=$(command -v ttyd)
     cat > /etc/supervisor/conf.d/ttyd.conf << TTYDEOF
 [program:ttyd]
-command=${TTYD_BIN} -W -p ${TTYDPORT} -i 127.0.0.1 bash
+command=${TTYD_BIN} -W -p ${TTYDPORT} -i 127.0.0.1 zsh
 autostart=true
 autorestart=true
 stdout_logfile=/var/log/ttyd-supervisor.log
 stderr_logfile=/var/log/ttyd-supervisor.err.log
 user=vscode
+directory=/home/vscode
+environment=HOME="/home/vscode",USER="vscode"
 TTYDEOF
 fi
 
