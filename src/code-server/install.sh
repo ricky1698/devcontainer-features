@@ -11,6 +11,20 @@ fi
 
 curl -fsSL https://code-server.dev/install.sh | sh -s -- $CODE_SERVER_INSTALL_ARGS
 
+# Install GitHub Copilot Chat extension from VSIX (always installed)
+if [[ -z "$COPILOT_CHAT_VERSION" ]]; then
+    echo "Fetching latest GitHub Copilot Chat version..."
+    COPILOT_CHAT_VERSION=$(curl -fsSL https://api.github.com/repos/microsoft/vscode-copilot-chat/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+    echo "Latest version: ${COPILOT_CHAT_VERSION}"
+fi
+VSIX_URL="https://github.com/microsoft/vscode-copilot-chat/releases/download/v${COPILOT_CHAT_VERSION}/GitHub.copilot-chat.${COPILOT_CHAT_VERSION}.universal.vsix"
+VSIX_FILE="/tmp/GitHub.copilot-chat.${COPILOT_CHAT_VERSION}.universal.vsix"
+echo "Downloading GitHub Copilot Chat v${COPILOT_CHAT_VERSION}..."
+curl -fsSL -o "$VSIX_FILE" "$VSIX_URL"
+echo "Installing GitHub Copilot Chat extension..."
+code-server --install-extension "$VSIX_FILE" || echo "Warning: Failed to install GitHub Copilot Chat"
+rm -f "$VSIX_FILE"
+
 # Install extensions
 if [[ -n "$EXTENSIONS" ]]; then
     IFS=',' read -ra EXT_ARRAY <<< "$EXTENSIONS"
