@@ -18,9 +18,9 @@ VS Code in the browser (code-server) with proper entrypoint chaining
 | port | Port for code-server | string | 8888 |
 | host | Host to bind code-server | string | 0.0.0.0 |
 | auth | Authentication type | string | none |
-| version | Version of code-server to install (empty for latest) | string | 4.114.1 |
+| version | Version of code-server to install (empty for latest) | string | 4.115.0 |
 | extensions | Comma-separated list of VS Code extensions to install | string | - |
-| copilot_chat_version | Version of GitHub Copilot Chat extension to install (e.g. 0.42.3). Empty for latest. VSIX is downloaded from github.com/microsoft/vscode-copilot-chat/releases. | string | 0.42.3 |
+| copilot_chat_version | Version of GitHub Copilot Chat extension to install (e.g. 0.43.0). Empty for latest. VSIX is downloaded from github.com/microsoft/vscode-copilot-chat/releases. | string | 0.43.0 |
 
 
 
