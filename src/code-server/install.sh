@@ -21,8 +21,9 @@ VSIX_URL="https://github.com/microsoft/vscode-copilot-chat/releases/download/v${
 VSIX_FILE="/tmp/GitHub.copilot-chat.${COPILOT_CHAT_VERSION}.universal.vsix"
 echo "Downloading GitHub Copilot Chat v${COPILOT_CHAT_VERSION}..."
 curl -fsSL -o "$VSIX_FILE" "$VSIX_URL"
-echo "Installing GitHub Copilot Chat extension..."
-code-server --install-extension "$VSIX_FILE" || echo "Warning: Failed to install GitHub Copilot Chat"
+chmod 644 "$VSIX_FILE"
+echo "Installing GitHub Copilot Chat extension as ${_REMOTE_USER}..."
+su - "$_REMOTE_USER" -c "code-server --install-extension '$VSIX_FILE'" || echo "Warning: Failed to install GitHub Copilot Chat"
 rm -f "$VSIX_FILE"
 
 # Install extensions
@@ -30,7 +31,7 @@ if [[ -n "$EXTENSIONS" ]]; then
     IFS=',' read -ra EXT_ARRAY <<< "$EXTENSIONS"
     for ext in "${EXT_ARRAY[@]}"; do
         echo "Installing extension: $ext"
-        code-server --install-extension "$ext" || echo "Warning: Failed to install $ext"
+        su - "$_REMOTE_USER" -c "code-server --install-extension '$ext'" || echo "Warning: Failed to install $ext"
     done
 fi
 
