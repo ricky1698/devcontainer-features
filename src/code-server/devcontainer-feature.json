@@ -1,7 +1,7 @@
 {
     "name": "Code Server",
     "id": "code-server",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "VS Code in the browser (code-server) with proper entrypoint chaining",
     "options": {
         "port": {
@@ -22,7 +22,7 @@
         },
         "version": {
             "type": "string",
-            "default": "4.114.1",
+            "default": "4.115.0",
             "description": "Version of code-server to install (empty for latest)"
         },
         "extensions": {
@@ -32,8 +32,8 @@
         },
         "copilot_chat_version": {
             "type": "string",
-            "default": "0.42.3",
-            "description": "Version of GitHub Copilot Chat extension to install (e.g. 0.42.3). Empty for latest. VSIX is downloaded from github.com/microsoft/vscode-copilot-chat/releases."
+            "default": "0.43.0",
+            "description": "Version of GitHub Copilot Chat extension to install (e.g. 0.43.0). Empty for latest. VSIX is downloaded from github.com/microsoft/vscode-copilot-chat/releases."
         }
     },
     "entrypoint": "/usr/local/bin/devdesk-code-server-entrypoint",
