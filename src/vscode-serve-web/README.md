@@ -19,6 +19,7 @@ Official Microsoft VS Code in the browser using 'code serve-web' with proper ent
 | host | Host to bind VS Code web server | string | 0.0.0.0 |
 | connectionToken | Require a connection token for authentication (false = --without-connection-token) | boolean | false |
 | extensions | Comma-separated list of VS Code extension IDs to pre-install (e.g. ms-python.python,eamodio.gitlens) | string | - |
+| serverBasePath | Base path for the VS Code web server (e.g. /code-server for reverse proxy setups) | string | /code-server |
 
 
 
