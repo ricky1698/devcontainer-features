@@ -405,9 +405,16 @@ fi
 # When behind a TLS-terminating proxy, $http_x_forwarded_proto is "https";
 # when accessed directly over HTTP it falls back to $scheme.
 cat > /etc/nginx/conf.d/forwarded-proto.conf << 'MAPEOF'
+# Pass upstream TLS-terminator's proto through; fall back to $scheme for direct HTTP.
 map $http_x_forwarded_proto $real_forwarded_proto {
     default $scheme;
     https   https;
+}
+
+# Correctly handle both WebSocket upgrades and plain HTTP connections.
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
 }
 MAPEOF
 
@@ -446,12 +453,14 @@ for service in "${SERVICE_ARRAY[@]}"; do
         proxy_pass http://localhost:$port/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
+        proxy_set_header Connection \$connection_upgrade;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$real_forwarded_proto;
+        proxy_buffering off;
         proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
     }
 PROXYEOF
 done
