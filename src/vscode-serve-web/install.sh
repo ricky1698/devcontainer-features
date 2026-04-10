@@ -70,11 +70,18 @@ else
     TOKEN_FLAG=""
 fi
 
+# Determine base path flag
+if [[ -n "$SERVERBASEPATH" ]]; then
+    BASE_PATH_FLAG="--server-base-path $SERVERBASEPATH"
+else
+    BASE_PATH_FLAG=""
+fi
+
 # Create supervisor config
 mkdir -p /etc/supervisor/conf.d
 cat > /etc/supervisor/conf.d/vscode-serve-web.conf << CONFEOF
 [program:vscode-serve-web]
-command=/usr/local/bin/code serve-web --host $HOST --port $PORT $TOKEN_FLAG --accept-server-license-terms
+command=/usr/local/bin/code serve-web --host $HOST --port $PORT $TOKEN_FLAG $BASE_PATH_FLAG --accept-server-license-terms
 directory=$_REMOTE_USER_HOME
 autostart=true
 startsecs=10

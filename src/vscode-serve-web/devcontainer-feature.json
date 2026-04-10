@@ -23,6 +23,11 @@
             "type": "string",
             "default": "",
             "description": "Comma-separated list of VS Code extension IDs to pre-install (e.g. ms-python.python,eamodio.gitlens)"
+        },
+        "serverBasePath": {
+            "type": "string",
+            "default": "/code-server",
+            "description": "Base path for the VS Code web server (e.g. /code-server for reverse proxy setups)"
         }
     },
     "entrypoint": "/usr/local/bin/devdesk-vscode-serve-web-entrypoint",

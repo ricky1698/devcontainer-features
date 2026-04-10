@@ -3,7 +3,7 @@
 # Run this inside an already-running devcontainer (requires sudo).
 #
 # Usage:
-#   sudo bash setup.sh [--port 8888] [--host 0.0.0.0] [--with-token] [--user vscode] [--extensions "ms-python.python,eamodio.gitlens"]
+#   sudo bash setup.sh [--port 8888] [--host 0.0.0.0] [--with-token] [--base-path /code-server] [--user vscode] [--extensions "ms-python.python,eamodio.gitlens"]
 #
 set -e
 
@@ -11,17 +11,19 @@ set -e
 PORT=8888
 HOST=0.0.0.0
 CONNECTIONTOKEN=false
+SERVERBASEPATH="/code-server"
 EXTENSIONS=""
 EXPLICIT_USER=""
 
 # ---------- parse args ----------
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --port)        PORT="$2";          shift 2 ;;
-        --host)        HOST="$2";          shift 2 ;;
+        --port)        PORT="$2";           shift 2 ;;
+        --host)        HOST="$2";           shift 2 ;;
         --with-token)  CONNECTIONTOKEN=true; shift ;;
-        --extensions)  EXTENSIONS="$2";    shift 2 ;;
-        --user)        EXPLICIT_USER="$2"; shift 2 ;;
+        --base-path)   SERVERBASEPATH="$2"; shift 2 ;;
+        --extensions)  EXTENSIONS="$2";     shift 2 ;;
+        --user)        EXPLICIT_USER="$2";  shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -51,12 +53,13 @@ _REMOTE_USER_HOME=$(getent passwd "$_REMOTE_USER" | cut -d: -f6)
 echo "==> vscode-serve-web setup"
 echo "    user:       $_REMOTE_USER ($_REMOTE_USER_HOME)"
 echo "    listen:     $HOST:$PORT"
+echo "    base path:  $SERVERBASEPATH"
 echo "    token:      $CONNECTIONTOKEN"
 echo "    extensions: ${EXTENSIONS:-none}"
 echo ""
 
 # ---------- delegate to install.sh ----------
-export _REMOTE_USER _REMOTE_USER_HOME PORT HOST CONNECTIONTOKEN EXTENSIONS
+export _REMOTE_USER _REMOTE_USER_HOME PORT HOST CONNECTIONTOKEN SERVERBASEPATH EXTENSIONS
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/install.sh"
