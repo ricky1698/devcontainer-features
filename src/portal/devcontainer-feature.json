@@ -1,7 +1,7 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "DevDesk Portal with nginx reverse proxy for web services on port 80",
     "options": {
         "services": {
@@ -19,7 +19,7 @@
             "default": true,
             "description": "Install and configure ttyd for in-browser terminal (auto-added as a service)"
         },
-        "ttydPort": {
+        "ttyd_port": {
             "type": "string",
             "default": "7681",
             "description": "Port for ttyd to listen on (localhost only)"

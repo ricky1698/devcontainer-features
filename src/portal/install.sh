@@ -4,7 +4,7 @@ set -e
 echo "Installing DevDesk Portal..."
 
 TTYD=${TTYD:-"true"}
-TTYDPORT=${TTYDPORT:-"7681"}
+TTYD_PORT=${TTYD_PORT:-"7681"}
 
 # Install nginx if not present
 if ! command -v nginx &> /dev/null; then
@@ -35,9 +35,9 @@ rm -rf /var/lib/apt/lists/*
 # If ttyd enabled, auto-append Terminal service to SERVICES
 if [ "$TTYD" = "true" ]; then
     if [ -n "$SERVICES" ]; then
-        SERVICES="${SERVICES},Terminal:${TTYDPORT}:Web terminal:terminal"
+        SERVICES="${SERVICES},Terminal:${TTYD_PORT}:Web terminal:terminal"
     else
-        SERVICES="Terminal:${TTYDPORT}:Web terminal:terminal"
+        SERVICES="Terminal:${TTYD_PORT}:Web terminal:terminal"
     fi
 fi
 
@@ -470,14 +470,14 @@ if [ "$TTYD" = "true" ]; then
     TTYD_BIN=$(command -v ttyd)
     cat > /etc/supervisor/conf.d/ttyd.conf << TTYDEOF
 [program:ttyd]
-command=${TTYD_BIN} -W -p ${TTYDPORT} -i 127.0.0.1 zsh
+command=${TTYD_BIN} -W -p ${TTYD_PORT} -i 127.0.0.1 zsh
 autostart=true
 autorestart=true
 stdout_logfile=/var/log/ttyd-supervisor.log
 stderr_logfile=/var/log/ttyd-supervisor.err.log
-user=vscode
-directory=/home/vscode
-environment=HOME="/home/vscode",USER="vscode"
+user=$_REMOTE_USER
+directory=$_REMOTE_USER_HOME
+environment=HOME="$_REMOTE_USER_HOME",USER="$_REMOTE_USER"
 TTYDEOF
 fi
 
