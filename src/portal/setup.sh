@@ -60,3 +60,19 @@ export _REMOTE_USER _REMOTE_USER_HOME SERVICES LINKS TTYD TTYD_PORT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/install.sh"
+
+# ---------- reload / restart supervisor services ----------
+if pgrep -x supervisord > /dev/null; then
+    echo "==> Reloading supervisor services..."
+    supervisorctl reread
+    supervisorctl update
+    supervisorctl restart nginx 2>/dev/null || supervisorctl start nginx
+    if [[ "$TTYD" == "true" ]]; then
+        supervisorctl restart ttyd 2>/dev/null || supervisorctl start ttyd
+    fi
+else
+    echo "==> Starting supervisord..."
+    supervisord -c /etc/supervisor/supervisord.conf
+fi
+
+echo "==> Done! Portal is available at http://localhost:80"
