@@ -15,7 +15,7 @@ Official Microsoft VS Code in the browser using 'code serve-web' with proper ent
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| port | Port for VS Code web server | string | 8080 |
+| port | Port for VS Code web server | string | 8888 |
 | host | Host to bind VS Code web server | string | 0.0.0.0 |
 | connectionToken | Require a connection token for authentication (false = --without-connection-token) | boolean | false |
 | extensions | Comma-separated list of VS Code extension IDs to pre-install (e.g. ms-python.python,eamodio.gitlens) | string | - |
