@@ -401,6 +401,16 @@ else
     echo "links: []" > /var/www/portal/links.yaml
 fi
 
+# Add a map so nginx passes the upstream X-Forwarded-Proto through correctly.
+# When behind a TLS-terminating proxy, $http_x_forwarded_proto is "https";
+# when accessed directly over HTTP it falls back to $scheme.
+cat > /etc/nginx/conf.d/forwarded-proto.conf << 'MAPEOF'
+map $http_x_forwarded_proto $real_forwarded_proto {
+    default $scheme;
+    https   https;
+}
+MAPEOF
+
 # Create nginx config as reverse proxy
 cat > /etc/nginx/sites-available/portal << NGINXEOF
 server {
@@ -440,7 +450,7 @@ for service in "${SERVICE_ARRAY[@]}"; do
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Proto \$real_forwarded_proto;
         proxy_read_timeout 86400;
     }
 PROXYEOF
