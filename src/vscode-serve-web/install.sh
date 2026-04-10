@@ -64,15 +64,15 @@ if [[ -n "$EXTENSIONS" ]]; then
 fi
 
 # Determine token flag
-if [[ "$CONNECTIONTOKEN" == "false" ]]; then
+if [[ "$CONNECTION_TOKEN" == "false" ]]; then
     TOKEN_FLAG="--without-connection-token"
 else
     TOKEN_FLAG=""
 fi
 
 # Determine base path flag
-if [[ -n "$SERVERBASEPATH" ]]; then
-    BASE_PATH_FLAG="--server-base-path $SERVERBASEPATH"
+if [[ -n "$SERVER_BASE_PATH" ]]; then
+    BASE_PATH_FLAG="--server-base-path $SERVER_BASE_PATH"
 else
     BASE_PATH_FLAG=""
 fi
