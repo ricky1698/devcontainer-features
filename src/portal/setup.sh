@@ -8,7 +8,7 @@
 set -e
 
 # ---------- defaults ----------
-SERVICES="noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal"
+SERVICES="noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:code:true"
 LINKS=""
 TTYD="true"
 TTYD_PORT="7681"

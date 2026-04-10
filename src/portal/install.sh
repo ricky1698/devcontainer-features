@@ -366,12 +366,14 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
 HTMLEOF
 
 # Create services.yaml from SERVICES parameter
-# Format: name:port:description:icon,name:port:description:icon,...
+# Format: name:port:description:icon[:passthrough]
+#   passthrough=true  → nginx keeps the path prefix (required for apps that use --server-base-path)
+#   passthrough=false → nginx strips the path prefix (default, for apps that serve from /)
 echo "services:" > /var/www/portal/services.yaml
 
 IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 for service in "${SERVICE_ARRAY[@]}"; do
-    IFS=':' read -r name port desc icon <<< "$service"
+    IFS=':' read -r name port desc icon passthrough <<< "$service"
     cat >> /var/www/portal/services.yaml << SERVICEEOF
   - name: $name
     port: $port
@@ -440,17 +442,23 @@ NGINXEOF
 # Add reverse proxy locations for each service
 IFS=',' read -ra SERVICE_ARRAY <<< "$SERVICES"
 for service in "${SERVICE_ARRAY[@]}"; do
-    IFS=':' read -r name port desc icon <<< "$service"
+    IFS=':' read -r name port desc icon passthrough <<< "$service"
     # Create a URL-safe path from service name (lowercase, replace spaces with hyphens)
     path=$(tr '[:upper:]' '[:lower:]' <<< "$name" | sed 's/[[:space:]]\+/-/g')
-    
+
+    # passthrough=true → keep path prefix (for apps using --server-base-path)
+    # passthrough=false/empty → strip path prefix (default, for apps serving from /)
+    if [[ "$passthrough" == "true" ]]; then
+        proxy_target="http://localhost:$port/$path/"
+    else
+        proxy_target="http://localhost:$port/"
+    fi
+
     cat >> /etc/nginx/sites-available/portal << PROXYEOF
 
-    # Reverse proxy for $name
-    # Note: trailing slash in proxy_pass strips the location prefix
-    # e.g., /$path/foo proxies to http://localhost:$port/foo
+    # Reverse proxy for $name (passthrough=$passthrough)
     location /$path/ {
-        proxy_pass http://localhost:$port/;
+        proxy_pass $proxy_target;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection \$connection_upgrade;

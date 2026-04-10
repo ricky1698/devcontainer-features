@@ -1,13 +1,13 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "description": "DevDesk Portal with nginx reverse proxy for web services on port 80",
     "options": {
         "services": {
             "type": "string",
-            "default": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal",
-            "description": "Comma-separated services in format name:port:description:icon"
+            "default": "noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:code:true",
+            "description": "Comma-separated services in format name:port:description:icon[:passthrough]. Set passthrough=true for apps that use --server-base-path (e.g. VS Code serve-web) so nginx keeps the path prefix instead of stripping it."
         },
         "links": {
             "type": "string",
