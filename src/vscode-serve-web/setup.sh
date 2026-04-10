@@ -75,20 +75,25 @@ case "$ARCH" in
     *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
 esac
 
-if command -v code &>/dev/null; then
+# Check if the real VS Code CLI binary is present (not just a wrapper script)
+CODE_BIN=/usr/local/bin/code-vscode-cli
+if [[ -x "$CODE_BIN" ]] && "$CODE_BIN" --version &>/dev/null; then
     echo "==> VS Code CLI already installed, skipping download"
 else
     CLI_URL="https://update.code.visualstudio.com/latest/cli-linux-${CLI_ARCH}/stable"
     echo "==> Downloading VS Code CLI (${CLI_ARCH})..."
     curl -fsSL "$CLI_URL" | tar -xz -C /tmp
-    mv /tmp/code /usr/local/bin/code
-    chmod +x /usr/local/bin/code
+    mv /tmp/code "$CODE_BIN"
+    chmod +x "$CODE_BIN"
 fi
+
+# Create a wrapper at a known path for supervisor and other scripts
+ln -sf "$CODE_BIN" /usr/local/bin/code-cli
 
 # ---------- 3. pre-download VS Code Server ----------
 echo "==> Pre-downloading VS Code Server (may take a while)..."
 su - "$REMOTE_USER" -c "
-    /usr/local/bin/code serve-web \
+    /usr/local/bin/code-cli serve-web \
         --host 127.0.0.1 \
         --port 19877 \
         --without-connection-token \
@@ -134,7 +139,7 @@ fi
 
 cat > /etc/supervisor/conf.d/vscode-serve-web.conf << CONFEOF
 [program:vscode-serve-web]
-command=/usr/local/bin/code serve-web --host $HOST --port $PORT $TOKEN_FLAG --accept-server-license-terms
+command=/usr/local/bin/code-cli serve-web --host $HOST --port $PORT $TOKEN_FLAG --accept-server-license-terms
 directory=$REMOTE_USER_HOME
 autostart=true
 startsecs=10
