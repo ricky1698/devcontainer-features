@@ -18,7 +18,7 @@ DevDesk Portal with nginx reverse proxy for web services on port 80
 | services | Comma-separated services in format name:port:description:icon | string | noVNC:6080:VNC web client:monitor,Code Server:8888:VS Code in browser:terminal |
 | links | Comma-separated direct links in format name:port:description:icon (for services that don't work behind reverse proxy) | string | - |
 | ttyd | Install and configure ttyd for in-browser terminal (auto-added as a service) | boolean | true |
-| ttydPort | Port for ttyd to listen on (localhost only) | string | 7681 |
+| ttyd_port | Port for ttyd to listen on (localhost only) | string | 7681 |
 
 ## Direct Links Section
 
