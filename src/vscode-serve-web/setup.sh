@@ -3,29 +3,52 @@
 # Run this inside an already-running devcontainer (requires sudo).
 #
 # Usage:
-#   bash setup.sh [--port 8080] [--host 0.0.0.0] [--with-token] [--extensions "ms-python.python,eamodio.gitlens"]
+#   bash setup.sh [--port 8888] [--host 0.0.0.0] [--with-token] [--user vscode] [--extensions "ms-python.python,eamodio.gitlens"]
 #
 set -e
 
 # ---------- defaults ----------
-PORT=8080
+PORT=8888
 HOST=0.0.0.0
 CONNECTION_TOKEN=false
 EXTENSIONS=""
+EXPLICIT_USER=""
 
 # ---------- parse args ----------
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --port)        PORT="$2";       shift 2 ;;
-        --host)        HOST="$2";       shift 2 ;;
+        --port)        PORT="$2";         shift 2 ;;
+        --host)        HOST="$2";         shift 2 ;;
         --with-token)  CONNECTION_TOKEN=true; shift ;;
-        --extensions)  EXTENSIONS="$2"; shift 2 ;;
+        --extensions)  EXTENSIONS="$2";   shift 2 ;;
+        --user)        EXPLICIT_USER="$2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
 
-# ---------- resolve current user ----------
-REMOTE_USER="${SUDO_USER:-$(whoami)}"
+# ---------- resolve target user ----------
+if [[ -n "$EXPLICIT_USER" ]]; then
+    REMOTE_USER="$EXPLICIT_USER"
+elif [[ -n "$SUDO_USER" && "$SUDO_USER" != "root" ]]; then
+    # invoked via: sudo bash setup.sh
+    REMOTE_USER="$SUDO_USER"
+elif [[ "$(whoami)" != "root" ]]; then
+    # running as a normal user without sudo
+    REMOTE_USER="$(whoami)"
+else
+    # running as root — try common devcontainer usernames
+    for candidate in vscode codespace ubuntu debian user; do
+        if id "$candidate" &>/dev/null; then
+            REMOTE_USER="$candidate"
+            break
+        fi
+    done
+    if [[ -z "$REMOTE_USER" ]]; then
+        echo "ERROR: Could not detect a non-root user. Pass --user <username> explicitly."
+        exit 1
+    fi
+fi
+
 REMOTE_USER_HOME=$(getent passwd "$REMOTE_USER" | cut -d: -f6)
 
 echo "==> vscode-serve-web setup"
