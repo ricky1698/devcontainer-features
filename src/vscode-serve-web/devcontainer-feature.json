@@ -1,0 +1,33 @@
+{
+    "name": "VS Code Serve Web",
+    "id": "vscode-serve-web",
+    "version": "1.0.0",
+    "description": "Official Microsoft VS Code in the browser using 'code serve-web' with proper entrypoint chaining",
+    "options": {
+        "port": {
+            "type": "string",
+            "default": "8080",
+            "description": "Port for VS Code web server"
+        },
+        "host": {
+            "type": "string",
+            "default": "0.0.0.0",
+            "description": "Host to bind VS Code web server"
+        },
+        "connectionToken": {
+            "type": "boolean",
+            "default": false,
+            "description": "Require a connection token for authentication (false = --without-connection-token)"
+        },
+        "extensions": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated list of VS Code extension IDs to pre-install (e.g. ms-python.python,eamodio.gitlens)"
+        }
+    },
+    "entrypoint": "/usr/local/bin/devdesk-vscode-serve-web-entrypoint",
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils",
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
