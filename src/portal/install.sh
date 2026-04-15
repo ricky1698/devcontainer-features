@@ -53,7 +53,7 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DevDesk Portal</title>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/css/xterm.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -111,26 +111,55 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
         .loading { text-align: center; padding: 2rem; color: rgba(255, 255, 255, 0.6); }
         .error { text-align: center; padding: 2rem; color: #e94560; }
 
-        /* Terminal panel */
+        /* Terminal panel — fixed bottom, resizable, minimizable */
         #terminal-panel {
             display: none;
-            flex: 1;
             flex-direction: column;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 400px;
+            min-height: 80px;
+            max-height: 80vh;
+            z-index: 50;
             border-top: 2px solid #e94560;
-            min-height: 0;
+            background: #0d1117;
         }
         #terminal-panel.open { display: flex; }
+        #terminal-panel.minimized { height: auto !important; }
+        #terminal-panel.minimized #terminal-container,
+        #terminal-panel.minimized .term-resize-handle { display: none; }
+        .term-resize-handle {
+            height: 4px;
+            cursor: ns-resize;
+            background: transparent;
+            flex-shrink: 0;
+        }
+        .term-resize-handle:hover,
+        .term-resize-handle.dragging { background: #e94560; }
         .term-toolbar {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             padding: 0.5rem 1rem;
             background: rgba(0, 0, 0, 0.4);
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 0.85rem;
+            flex-shrink: 0;
         }
         .term-toolbar .term-title { flex: 1; color: #e94560; font-weight: 600; }
         .term-toolbar .term-status { font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); }
+        .btn-term-min {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-term-min:hover { background: rgba(255, 255, 255, 0.18); }
         .btn-term-close {
             background: rgba(233, 69, 96, 0.2);
             border: 1px solid rgba(233, 69, 96, 0.3);
@@ -145,7 +174,8 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
             flex: 1;
             padding: 4px;
             background: #000;
-            min-height: 300px;
+            min-height: 0;
+            overflow: hidden;
         }
         #terminal-container .xterm { height: 100%; }
     </style>
@@ -166,16 +196,20 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
 
     <!-- Terminal panel -->
     <div id="terminal-panel">
+        <div class="term-resize-handle" id="term-resize-handle"></div>
         <div class="term-toolbar">
             <span class="term-title" id="term-title">Terminal</span>
             <span class="term-status" id="term-status"></span>
+            <button class="btn-term-min" id="term-min" title="Minimize">&#9660;</button>
             <button class="btn-term-close" id="term-close">Close</button>
         </div>
         <div id="terminal-container"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@6.0.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.11.0/lib/addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-clipboard@0.2.0/lib/addon-clipboard.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.12.0/lib/addon-web-links.js"></script>
     <script>
         const icons = { code: '💻', globe: '🌐', monitor: '🖥️', bot: '🤖', terminal: '⌨️', default: '🔧' };
 
@@ -193,7 +227,9 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
         function openTerminal(wsPath, title) {
             closeTerminal();
             const panel = document.getElementById('terminal-panel');
+            panel.classList.remove('minimized');
             panel.classList.add('open');
+            document.getElementById('term-min').innerHTML = '&#9660;';
             document.getElementById('term-title').textContent = title || 'Terminal';
             document.getElementById('term-status').textContent = 'Connecting...';
 
@@ -202,11 +238,54 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 fontSize: 14,
                 fontFamily: "Consolas, 'Liberation Mono', Menlo, monospace",
                 theme: { background: '#000000', foreground: '#e2e8f0' },
+                rightClickSelectsWord: true,
             });
             fitAddon = new FitAddon.FitAddon();
             term.loadAddon(fitAddon);
-            term.open(document.getElementById('terminal-container'));
+            term.loadAddon(new ClipboardAddon.ClipboardAddon());
+            // Clickable URLs — open in a new tab on plain click (no modifier needed)
+            term.loadAddon(new WebLinksAddon.WebLinksAddon((event, uri) => {
+                window.open(uri, '_blank', 'noopener,noreferrer');
+            }));
+            const container = document.getElementById('terminal-container');
+            term.open(container);
             fitAddon.fit();
+
+            // Right-click: copy if selection, otherwise paste
+            container.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const sel = term.getSelection();
+                if (sel) {
+                    navigator.clipboard.writeText(sel);
+                    term.clearSelection();
+                } else {
+                    navigator.clipboard.readText().then(text => {
+                        if (text && termSocket && termSocket.readyState === WebSocket.OPEN) {
+                            termSocket.send(TTYD_INPUT + text);
+                        }
+                    }).catch(() => {});
+                }
+            });
+
+            // Ctrl+Shift+C / Ctrl+Shift+V for copy/paste (don't forward to remote)
+            term.attachCustomKeyEventHandler((ev) => {
+                if (ev.ctrlKey && ev.shiftKey && ev.type === 'keydown') {
+                    if (ev.key === 'C') {
+                        const sel = term.getSelection();
+                        if (sel) navigator.clipboard.writeText(sel);
+                        return false;
+                    }
+                    if (ev.key === 'V') {
+                        navigator.clipboard.readText().then(text => {
+                            if (text && termSocket && termSocket.readyState === WebSocket.OPEN) {
+                                termSocket.send(TTYD_INPUT + text);
+                            }
+                        }).catch(() => {});
+                        return false;
+                    }
+                }
+                return true;
+            });
 
             const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = protocol + '//' + location.host + wsPath;
@@ -272,6 +351,7 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
             const resizeObs = new ResizeObserver(() => { if (fitAddon) fitAddon.fit(); });
             resizeObs.observe(document.getElementById('terminal-container'));
             term._resizeObs = resizeObs;
+            updateBodyPadding();
         }
 
         function closeTerminal() {
@@ -282,11 +362,69 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 term = null;
             }
             fitAddon = null;
-            document.getElementById('terminal-panel').classList.remove('open');
+            const panel = document.getElementById('terminal-panel');
+            panel.classList.remove('open');
+            panel.classList.remove('minimized');
             document.getElementById('terminal-container').innerHTML = '';
+            updateBodyPadding();
         }
 
+        // --- Minimize / Restore ---
+        function toggleMinimize() {
+            const panel = document.getElementById('terminal-panel');
+            const btn = document.getElementById('term-min');
+            panel.classList.toggle('minimized');
+            const isMin = panel.classList.contains('minimized');
+            btn.innerHTML = isMin ? '&#9650;' : '&#9660;';
+            btn.title = isMin ? 'Restore' : 'Minimize';
+            updateBodyPadding();
+            if (!isMin && fitAddon) setTimeout(() => fitAddon.fit(), 50);
+        }
+
+        // --- Body padding so the fixed terminal panel doesn't cover content ---
+        function updateBodyPadding() {
+            const panel = document.getElementById('terminal-panel');
+            if (panel.classList.contains('open')) {
+                document.body.style.paddingBottom = panel.offsetHeight + 'px';
+            } else {
+                document.body.style.paddingBottom = '0';
+            }
+        }
+
+        // --- Resize handle (drag terminal panel height) ---
+        (function() {
+            const handle = document.getElementById('term-resize-handle');
+            const panel = document.getElementById('terminal-panel');
+            let startY, startH;
+
+            handle.addEventListener('mousedown', (e) => {
+                if (panel.classList.contains('minimized')) return;
+                e.preventDefault();
+                startY = e.clientY;
+                startH = panel.offsetHeight;
+                handle.classList.add('dragging');
+                document.addEventListener('mousemove', onDrag);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            function onDrag(e) {
+                const h = Math.max(80, Math.min(window.innerHeight * 0.8, startH - (e.clientY - startY)));
+                panel.style.height = h + 'px';
+                if (fitAddon) fitAddon.fit();
+            }
+
+            function onUp() {
+                handle.classList.remove('dragging');
+                document.removeEventListener('mousemove', onDrag);
+                document.removeEventListener('mouseup', onUp);
+                updateBodyPadding();
+            }
+        })();
+
+        window.addEventListener('resize', () => { if (fitAddon) fitAddon.fit(); updateBodyPadding(); });
+
         document.getElementById('term-close').addEventListener('click', closeTerminal);
+        document.getElementById('term-min').addEventListener('click', toggleMinimize);
 
         // --- Services ---
         async function loadServices() {
