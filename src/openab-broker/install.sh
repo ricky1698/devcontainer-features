@@ -120,8 +120,6 @@ cat > "$CONFIGPATH" <<CFGEOF
 [discord]
 bot_token = "\${DISCORD_BOT_TOKEN}"
 allowed_channels = [${ALLOWED_TOML}]
-# allowed_users = []
-# allow_bot_messages = "off"
 
 ${AGENT_BLOCK}
 
@@ -133,21 +131,6 @@ session_ttl_hours = 24
 enabled = true
 remove_after_reply = false
 
-[reactions.emojis]
-queued = "👀"
-thinking = "🤔"
-tool = "🔥"
-coding = "👨‍💻"
-web = "⚡"
-done = "🆗"
-error = "😱"
-
-[reactions.timing]
-debounce_ms = 700
-stall_soft_ms = 10000
-stall_hard_ms = 30000
-done_hold_ms = 1500
-error_hold_ms = 2500
 CFGEOF
 
 chmod 0644 "$CONFIGPATH"
