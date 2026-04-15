@@ -1,0 +1,48 @@
+{
+    "name": "OpenAB Broker",
+    "id": "openab-broker",
+    "version": "1.0.0",
+    "description": "Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents. Builds openab from source; agent CLIs must be provided by other features.",
+    "options": {
+        "version": {
+            "type": "string",
+            "default": "main",
+            "description": "openab git ref to build (branch, tag, or commit SHA)"
+        },
+        "repoUrl": {
+            "type": "string",
+            "default": "https://github.com/openabdev/openab.git",
+            "description": "Git repository URL to clone openab from"
+        },
+        "defaultAgent": {
+            "type": "string",
+            "enum": ["kiro-cli", "claude", "codex", "gemini", "copilot"],
+            "default": "copilot",
+            "description": "Which agent to wire into the generated config.toml [agent] section"
+        },
+        "configPath": {
+            "type": "string",
+            "default": "/etc/openab/config.toml",
+            "description": "Path where the generated config.toml is written"
+        },
+        "allowedChannels": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated Discord channel IDs allowed to talk to the broker (empty = placeholder)"
+        },
+        "maxSessions": {
+            "type": "string",
+            "default": "10",
+            "description": "pool.max_sessions value written into config.toml"
+        },
+        "autostart": {
+            "type": "boolean",
+            "default": false,
+            "description": "Start openab automatically via supervisor. Requires DISCORD_BOT_TOKEN to be set in the container environment."
+        }
+    },
+    "entrypoint": "/usr/local/bin/devdesk-openab-entrypoint",
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
