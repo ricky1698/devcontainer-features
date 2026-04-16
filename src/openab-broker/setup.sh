@@ -11,7 +11,7 @@
 set -e
 
 # ---------- defaults (match devcontainer-feature.json) ----------
-VERSION="main"
+VERSION="0.7.6"
 REPOURL="https://github.com/openabdev/openab.git"
 DEFAULTAGENT="copilot"
 CONFIGPATH="/etc/openab/config.toml"

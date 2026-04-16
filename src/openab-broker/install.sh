@@ -25,7 +25,19 @@ if [[ ! -x "$CARGO_BIN" ]]; then
 fi
 
 # --- 3. Build openab from source -------------------------------------------
-echo "Cloning openab (${VERSION}) from ${REPOURL}..."
+# Resolve version → git ref:
+#   'latest'      → main branch (bleeding edge)
+#   '0.7.6' etc.  → tag v0.7.6 (auto-prepend 'v' to semver-looking values)
+#   anything else → used verbatim as a git ref
+if [[ "$VERSION" == "latest" ]]; then
+    OPENAB_REF="main"
+elif [[ "$VERSION" =~ ^[0-9] ]]; then
+    OPENAB_REF="v$VERSION"
+else
+    OPENAB_REF="$VERSION"
+fi
+
+echo "Cloning openab (version='${VERSION}' → ref='${OPENAB_REF}') from ${REPOURL}..."
 BUILD_DIR=$(mktemp -d)
 chown "$_REMOTE_USER:$_REMOTE_USER" "$BUILD_DIR"
 su - "$_REMOTE_USER" -c "
@@ -33,7 +45,7 @@ su - "$_REMOTE_USER" -c "
     cd '$BUILD_DIR'
     git clone '$REPOURL' src
     cd src
-    git checkout '$VERSION'
+    git checkout '$OPENAB_REF'
     echo 'Building openab (release) — this may take several minutes...'
     '$CARGO_BIN' build --release
 "

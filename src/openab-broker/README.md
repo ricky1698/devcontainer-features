@@ -15,7 +15,7 @@ Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents
 
 | Options Id | Description | Type | Default Value |
 |-----|-----|-----|-----|
-| version | openab git ref to build (branch, tag, or commit SHA) | string | main |
+| version | openab version to build. Use a semver (e.g. '0.7.6' → tag v0.7.6), 'latest' to build from the main branch, or any git ref (branch/tag/SHA). | string | 0.7.6 |
 | repoUrl | Git repository URL to clone openab from | string | https://github.com/openabdev/openab.git |
 | defaultAgent | Which agent to wire into the generated config.toml [agent] section | string | copilot |
 | configPath | Path where the generated config.toml is written | string | /etc/openab/config.toml |
