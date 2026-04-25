@@ -1,7 +1,7 @@
 
 # T3Code (t3code)
 
-T3Code AI-powered code editor with supervisor config
+T3Code AI-powered code editor with supervisor config and pairing API
 
 ## Example Usage
 
