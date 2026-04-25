@@ -30,6 +30,104 @@ user=$_REMOTE_USER
 environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",NODE_OPTIONS="--no-network-family-autoselection"
 CONFEOF
 
+# --- T3 Pairing API Server ---
+# A lightweight HTTP server that generates t3 pairing tokens via CLI.
+# Runs on localhost:7691, proxied by nginx at /api/t3-pair (if portal feature is installed).
+
+cat > /usr/local/bin/t3-pair-server << 'T3PAIREOF'
+#!/usr/bin/env node
+const http = require("http");
+const { execSync } = require("child_process");
+
+const PORT = 7691;
+
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Content-Type": "application/json",
+};
+
+const server = http.createServer((req, res) => {
+  if (req.method === "OPTIONS") {
+    res.writeHead(204, CORS_HEADERS);
+    res.end();
+    return;
+  }
+
+  if (req.method !== "GET") {
+    res.writeHead(405, CORS_HEADERS);
+    res.end(JSON.stringify({ error: "Method not allowed" }));
+    return;
+  }
+
+  try {
+    // Get Tailscale FQDN (trim trailing dot)
+    const tsStatus = JSON.parse(
+      execSync("tailscale status --json", { encoding: "utf-8", timeout: 5000 })
+    );
+    const fqdn = tsStatus.Self.DNSName.replace(/\.$/, "");
+
+    // Generate pairing token via CLI
+    const result = execSync(
+      `t3 auth pairing create --json --base-url "http://${fqdn}:3773"`,
+      { encoding: "utf-8", timeout: 10000 }
+    );
+
+    res.writeHead(200, CORS_HEADERS);
+    res.end(result);
+  } catch (err) {
+    const message = err.stderr || err.message || "Unknown error";
+    console.error("t3-pair-server error:", message);
+    res.writeHead(500, CORS_HEADERS);
+    res.end(JSON.stringify({ error: message }));
+  }
+});
+
+server.listen(PORT, "127.0.0.1", () => {
+  console.log(`t3-pair-server listening on http://127.0.0.1:${PORT}`);
+});
+T3PAIREOF
+
+chmod +x /usr/local/bin/t3-pair-server
+
+# Create supervisor config for pairing server
+cat > /etc/supervisor/conf.d/t3-pair-server.conf << PAIREOF
+[program:t3-pair-server]
+command=$_REMOTE_USER_HOME/.local/share/mise/shims/node /usr/local/bin/t3-pair-server
+directory=$_REMOTE_USER_HOME
+autostart=$AUTOSTART_VALUE
+startsecs=3
+autorestart=true
+startretries=3
+stderr_logfile=/var/log/t3-pair-server.err.log
+stdout_logfile=/var/log/t3-pair-server.log
+user=$_REMOTE_USER
+environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME"
+PAIREOF
+
+# --- Register with portal nginx (if portal feature is installed) ---
+if [ -f /etc/nginx/sites-available/portal ]; then
+    echo "Registering t3-pair API with portal nginx..."
+    # Remove the closing } of the server block, append t3-pair location, re-add }
+    sed -i '$ d' /etc/nginx/sites-available/portal
+    cat >> /etc/nginx/sites-available/portal << 'NGINXT3EOF'
+
+    # T3 Code pairing API (added by t3code feature)
+    location /api/t3-pair {
+        proxy_pass http://localhost:7691/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Content-Type" always;
+        if ($request_method = OPTIONS) { return 204; }
+    }
+}
+NGINXT3EOF
+fi
+
 # Create entrypoint script
 cat > /usr/local/bin/devdesk-t3code-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
@@ -44,6 +142,7 @@ fi
 sudo supervisorctl reread 2>/dev/null || true
 sudo supervisorctl update 2>/dev/null || true
 sudo supervisorctl start t3code 2>/dev/null || true
+sudo supervisorctl start t3-pair-server 2>/dev/null || true
 
 # Execute the next command in the chain
 exec "$@"

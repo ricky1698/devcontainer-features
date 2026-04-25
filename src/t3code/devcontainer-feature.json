@@ -1,8 +1,8 @@
 {
     "name": "T3Code",
     "id": "t3code",
-    "version": "1.0.1",
-    "description": "T3Code AI-powered code editor with supervisor config",
+    "version": "1.0.2",
+    "description": "T3Code AI-powered code editor with supervisor config and pairing API",
     "options": {
         "hostname": {
             "type": "string",
@@ -17,6 +17,7 @@
     },
     "entrypoint": "/usr/local/bin/devdesk-t3code-entrypoint",
     "installsAfter": [
-        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base",
+        "ghcr.io/ricky1698/devcontainer-features/portal"
     ]
 }
