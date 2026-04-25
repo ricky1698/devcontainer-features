@@ -119,9 +119,13 @@ if [ -f /etc/nginx/sites-available/portal ]; then
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        add_header Access-Control-Allow-Origin * always;
+        proxy_hide_header Access-Control-Allow-Origin;
+        proxy_hide_header Access-Control-Allow-Methods;
+        proxy_hide_header Access-Control-Allow-Headers;
+        add_header Access-Control-Allow-Origin $http_origin always;
         add_header Access-Control-Allow-Methods "GET, OPTIONS" always;
         add_header Access-Control-Allow-Headers "Content-Type" always;
+        add_header Vary "Origin" always;
         if ($request_method = OPTIONS) { return 204; }
     }
 }
