@@ -10,6 +10,7 @@ A collection of dev container features for DevDesk development environments.
 | [portal](./src/portal) | DevDesk Portal with nginx for service discovery |
 | [vibetunnel](./src/vibetunnel) | VibeTunnel MCP tunnel service |
 | [opencode](./src/opencode) | OpenCode AI-powered code editor |
+| [chrome](./src/chrome) | Google Chrome stable via official apt repository |
 
 ## Usage
 
@@ -24,7 +25,8 @@ Add features to your `devcontainer.json`:
         },
         "ghcr.io/ricky1698/devcontainer-features/portal:1": {},
         "ghcr.io/ricky1698/devcontainer-features/vibetunnel:1": {},
-        "ghcr.io/ricky1698/devcontainer-features/opencode:1": {}
+        "ghcr.io/ricky1698/devcontainer-features/opencode:1": {},
+        "ghcr.io/ricky1698/devcontainer-features/chrome:1": {}
     }
 }
 ```
@@ -69,6 +71,12 @@ OpenCode AI editor with supervisor management.
 Options:
 - `hostname`: Bind hostname (default: 0.0.0.0)
 - `autostart`: Auto-start via supervisor (default: true)
+
+### chrome
+
+Installs Google Chrome stable from Google's official apt repository.
+
+Options: none
 
 ## Development
 

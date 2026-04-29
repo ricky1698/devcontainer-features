@@ -1,0 +1,10 @@
+{
+    "name": "Google Chrome",
+    "id": "chrome",
+    "version": "1.0.0",
+    "description": "Install Google Chrome stable via official apt repository",
+    "options": {},
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/desktop-dark"
+    ]
+}
