@@ -1,0 +1,32 @@
+{
+    "name": "OpenAB Gateway",
+    "id": "openab-gateway",
+    "version": "1.0.0",
+    "description": "Standalone webhook gateway for openab — bridges Telegram / LINE / Feishu / Google Chat / MS Teams to an outbound-only openab pod over WebSocket. Builds the openab-gateway binary from the openab repo's gateway/ sub-crate.",
+    "options": {
+        "version": {
+            "type": "string",
+            "default": "latest",
+            "description": "openab version to build from. Use 'latest' for main, a semver like '0.7.6' (resolved to tag v0.7.6), or any git ref (branch/tag/SHA)."
+        },
+        "repoUrl": {
+            "type": "string",
+            "default": "https://github.com/openabdev/openab.git",
+            "description": "Git repository URL to clone openab from. Override to point at a fork (e.g. https://github.com/<you>/openab.git) when building an unmerged branch."
+        },
+        "listenAddr": {
+            "type": "string",
+            "default": "0.0.0.0:8080",
+            "description": "GATEWAY_LISTEN value — the address openab-gateway binds to."
+        },
+        "autostart": {
+            "type": "boolean",
+            "default": false,
+            "description": "Start openab-gateway automatically via supervisor when the container boots. Requires at least one platform credential in env (TELEGRAM_BOT_TOKEN, FEISHU_APP_ID, GOOGLE_CHAT_ENABLED=true, LINE_CHANNEL_SECRET, ...)."
+        }
+    },
+    "entrypoint": "/usr/local/bin/devdesk-openab-gateway-entrypoint",
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
