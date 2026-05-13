@@ -267,22 +267,12 @@ cat > /var/www/portal/index.html << 'HTMLEOF'
                 }
             });
 
-            // Ctrl+Shift+C / Ctrl+Shift+V for copy/paste (don't forward to remote)
+            // Ctrl+Shift+C copies selection; paste is handled by xterm's built-in paste event
             term.attachCustomKeyEventHandler((ev) => {
-                if (ev.ctrlKey && ev.shiftKey && ev.type === 'keydown') {
-                    if (ev.key === 'C') {
-                        const sel = term.getSelection();
-                        if (sel) navigator.clipboard.writeText(sel);
-                        return false;
-                    }
-                    if (ev.key === 'V') {
-                        navigator.clipboard.readText().then(text => {
-                            if (text && termSocket && termSocket.readyState === WebSocket.OPEN) {
-                                termSocket.send(TTYD_INPUT + text);
-                            }
-                        }).catch(() => {});
-                        return false;
-                    }
+                if (ev.ctrlKey && ev.shiftKey && ev.type === 'keydown' && ev.key === 'C') {
+                    const sel = term.getSelection();
+                    if (sel) navigator.clipboard.writeText(sel);
+                    return false;
                 }
                 return true;
             });
