@@ -1,7 +1,7 @@
 {
     "name": "Portal",
     "id": "portal",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "DevDesk Portal with nginx reverse proxy for web services on port 80",
     "options": {
         "services": {
