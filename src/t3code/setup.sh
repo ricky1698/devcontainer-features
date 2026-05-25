@@ -67,6 +67,7 @@ if pgrep -x supervisord > /dev/null; then
     if [[ "$AUTOSTART" == "true" ]]; then
         supervisorctl restart t3code 2>/dev/null || supervisorctl start t3code
         supervisorctl restart t3-pair-server 2>/dev/null || supervisorctl start t3-pair-server
+        supervisorctl restart t3-tmp-cleaner 2>/dev/null || supervisorctl start t3-tmp-cleaner
     fi
     # Reload nginx so the new /api/t3-pair location takes effect (if portal is installed).
     if [ -f /etc/nginx/sites-available/portal ]; then

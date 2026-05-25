@@ -132,6 +132,51 @@ if [ -f /etc/nginx/sites-available/portal ]; then
 NGINXT3EOF
 fi
 
+# --- T3 tmp cleaner ---
+# t3's provider.session.reaper sweeps every 5 min and spawns `opencode`, which
+# uses OpenTUI. OpenTUI extracts an ~8MB libopentui.so to /tmp and dlopen()s it
+# but never unlinks it, so each probe leaks one orphan (~2.3GB/day) and fills
+# /tmp. This sweeper purges those orphans. Only files untouched for >= min-age
+# minutes are removed, so a temp file just written (and possibly still open) is
+# left alone. Knobs are overridable via the supervisor config's environment.
+
+cat > /usr/local/bin/t3-tmp-cleaner << 'CLEANEREOF'
+#!/usr/bin/env bash
+set -u
+
+DIR="${T3_TMP_CLEANER_DIR:-/tmp}"
+PATTERN="${T3_TMP_CLEANER_PATTERN:-.bdba*.so}"
+INTERVAL="${T3_TMP_CLEANER_INTERVAL:-600}"
+MIN_AGE_MIN="${T3_TMP_CLEANER_MIN_AGE_MIN:-5}"
+
+echo "t3-tmp-cleaner: dir=$DIR pattern='$PATTERN' interval=${INTERVAL}s min_age=${MIN_AGE_MIN}min"
+
+while :; do
+    mapfile -t victims < <(find "$DIR" -maxdepth 1 -type f -name "$PATTERN" -mmin +"$MIN_AGE_MIN" 2>/dev/null)
+    if [ "${#victims[@]}" -gt 0 ]; then
+        printf '%s\0' "${victims[@]}" | xargs -0 rm -f 2>/dev/null || true
+        echo "[$(date '+%F %T')] t3-tmp-cleaner: removed ${#victims[@]} file(s) matching '$PATTERN' in $DIR"
+    fi
+    sleep "$INTERVAL"
+done
+CLEANEREOF
+
+chmod +x /usr/local/bin/t3-tmp-cleaner
+
+# Create supervisor config for tmp cleaner
+cat > /etc/supervisor/conf.d/t3-tmp-cleaner.conf << CLEANERCONFEOF
+[program:t3-tmp-cleaner]
+command=/usr/local/bin/t3-tmp-cleaner
+directory=/
+autostart=$AUTOSTART_VALUE
+startsecs=3
+autorestart=true
+startretries=3
+stderr_logfile=/var/log/t3-tmp-cleaner.err.log
+stdout_logfile=/var/log/t3-tmp-cleaner.log
+user=root
+CLEANERCONFEOF
+
 # Create entrypoint script
 cat > /usr/local/bin/devdesk-t3code-entrypoint << 'ENTRYPOINTEOF'
 #!/bin/bash
@@ -147,6 +192,7 @@ sudo supervisorctl reread 2>/dev/null || true
 sudo supervisorctl update 2>/dev/null || true
 sudo supervisorctl start t3code 2>/dev/null || true
 sudo supervisorctl start t3-pair-server 2>/dev/null || true
+sudo supervisorctl start t3-tmp-cleaner 2>/dev/null || true
 
 # Execute the next command in the chain
 exec "$@"
