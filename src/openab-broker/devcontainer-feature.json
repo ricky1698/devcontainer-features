@@ -1,7 +1,7 @@
 {
     "name": "OpenAB Broker",
     "id": "openab-broker",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents. Builds openab from source; agent CLIs must be provided by other features.",
     "options": {
         "version": {
@@ -29,6 +29,21 @@
             "type": "string",
             "default": "",
             "description": "Comma-separated Discord channel IDs allowed to talk to the broker (empty = placeholder)"
+        },
+        "allowedRoleIds": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated Discord role IDs allowed to talk to the broker (empty = none)"
+        },
+        "trustedBotIds": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated Discord bot user IDs whose messages the broker will trust/accept (empty = none)"
+        },
+        "allowedUsers": {
+            "type": "string",
+            "default": "",
+            "description": "Comma-separated Discord user IDs allowed to talk to the broker (empty = none)"
         },
         "maxSessions": {
             "type": "string",

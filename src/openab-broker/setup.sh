@@ -16,6 +16,9 @@ REPOURL="https://github.com/openabdev/openab.git"
 DEFAULTAGENT="copilot"
 CONFIGPATH="/etc/openab/config.toml"
 ALLOWEDCHANNELS=""
+ALLOWEDROLEIDS=""
+TRUSTEDBOTIDS=""
+ALLOWEDUSERS=""
 MAXSESSIONS="10"
 AUTOSTART="false"
 EXPLICIT_USER=""
@@ -28,6 +31,9 @@ while [[ $# -gt 0 ]]; do
         --default-agent)    DEFAULTAGENT="$2";     shift 2 ;;
         --config-path)      CONFIGPATH="$2";       shift 2 ;;
         --allowed-channels) ALLOWEDCHANNELS="$2";  shift 2 ;;
+        --allowed-role-ids) ALLOWEDROLEIDS="$2";   shift 2 ;;
+        --trusted-bot-ids)  TRUSTEDBOTIDS="$2";    shift 2 ;;
+        --allowed-users)    ALLOWEDUSERS="$2";     shift 2 ;;
         --max-sessions)     MAXSESSIONS="$2";      shift 2 ;;
         --autostart)        AUTOSTART="true";      shift ;;
         --user)             EXPLICIT_USER="$2";    shift 2 ;;
@@ -68,13 +74,16 @@ echo "    repo:             $REPOURL"
 echo "    default agent:    $DEFAULTAGENT"
 echo "    config path:      $CONFIGPATH"
 echo "    allowed channels: ${ALLOWEDCHANNELS:-<placeholder>}"
+echo "    allowed roles:    ${ALLOWEDROLEIDS:-<none>}"
+echo "    trusted bots:     ${TRUSTEDBOTIDS:-<none>}"
+echo "    allowed users:    ${ALLOWEDUSERS:-<none>}"
 echo "    max sessions:     $MAXSESSIONS"
 echo "    autostart:        $AUTOSTART"
 echo ""
 
 # ---------- delegate to install.sh ----------
 export _REMOTE_USER _REMOTE_USER_HOME
-export VERSION REPOURL DEFAULTAGENT CONFIGPATH ALLOWEDCHANNELS MAXSESSIONS AUTOSTART
+export VERSION REPOURL DEFAULTAGENT CONFIGPATH ALLOWEDCHANNELS ALLOWEDROLEIDS TRUSTEDBOTIDS ALLOWEDUSERS MAXSESSIONS AUTOSTART
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/install.sh"

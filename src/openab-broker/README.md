@@ -20,6 +20,9 @@ Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents
 | defaultAgent | Which agent to wire into the generated config.toml [agent] section | string | copilot |
 | configPath | Path where the generated config.toml is written | string | /etc/openab/config.toml |
 | allowedChannels | Comma-separated Discord channel IDs allowed to talk to the broker (empty = placeholder) | string | - |
+| allowedRoleIds | Comma-separated Discord role IDs allowed to talk to the broker (empty = none) | string | - |
+| trustedBotIds | Comma-separated Discord bot user IDs whose messages the broker will trust/accept (empty = none) | string | - |
+| allowedUsers | Comma-separated Discord user IDs allowed to talk to the broker (empty = none) | string | - |
 | maxSessions | pool.max_sessions value written into config.toml | string | 10 |
 | autostart | Start openab automatically via supervisor. Requires DISCORD_BOT_TOKEN to be set in the container environment. | boolean | false |
 
