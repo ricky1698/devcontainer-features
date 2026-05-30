@@ -246,7 +246,7 @@ AUTOSTART_VALUE="false"
 
 cat > /etc/supervisor/conf.d/openab.conf <<SUPEOF
 [program:openab]
-command=/usr/local/bin/openab run ${CONFIGPATH}
+command=/usr/local/bin/openab run -c ${CONFIGPATH}
 directory=${_REMOTE_USER_HOME}
 autostart=${AUTOSTART_VALUE}
 startsecs=5

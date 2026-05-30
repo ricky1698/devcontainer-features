@@ -1,7 +1,7 @@
 {
     "name": "OpenAB Broker",
     "id": "openab-broker",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents. Builds openab from source; agent CLIs must be provided by other features.",
     "options": {
         "version": {
@@ -17,7 +17,7 @@
         "defaultAgent": {
             "type": "string",
             "enum": ["kiro-cli", "claude", "codex", "gemini", "copilot"],
-            "default": "copilot",
+            "default": "codex",
             "description": "Which agent to wire into the generated config.toml [agent] section"
         },
         "configPath": {
