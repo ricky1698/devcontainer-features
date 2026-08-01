@@ -1,7 +1,7 @@
 {
     "name": "OpenAB Gateway",
     "id": "openab-gateway",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Standalone webhook gateway for openab — bridges Telegram / LINE / Feishu / Google Chat / MS Teams to an outbound-only openab pod over WebSocket. Builds the openab-gateway binary from the openab repo's gateway/ sub-crate.",
     "options": {
         "version": {

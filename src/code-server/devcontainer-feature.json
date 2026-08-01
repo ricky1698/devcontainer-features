@@ -1,7 +1,7 @@
 {
     "name": "Code Server",
     "id": "code-server",
-    "version": "1.0.5",
+    "version": "1.0.6",
     "description": "VS Code in the browser (code-server) with proper entrypoint chaining",
     "options": {
         "port": {

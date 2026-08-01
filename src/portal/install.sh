@@ -616,6 +616,9 @@ cat > /etc/supervisor/conf.d/nginx.conf << 'SUPERVISOREOF'
 command=/usr/sbin/nginx -g "daemon off;"
 autostart=true
 autorestart=true
+; signal the whole process group, else workers orphan to PID 1 and keep holding ports
+stopasgroup=true
+killasgroup=true
 stdout_logfile=/var/log/nginx-supervisor.log
 stderr_logfile=/var/log/nginx-supervisor.err.log
 SUPERVISOREOF
@@ -628,6 +631,9 @@ if [ "$TTYD" = "true" ]; then
 command=${TTYD_BIN} -W -p ${TTYD_PORT} -i 127.0.0.1 zsh
 autostart=true
 autorestart=true
+; signal the whole process group, else spawned shells orphan to PID 1 and keep holding ptys
+stopasgroup=true
+killasgroup=true
 stdout_logfile=/var/log/ttyd-supervisor.log
 stderr_logfile=/var/log/ttyd-supervisor.err.log
 user=$_REMOTE_USER

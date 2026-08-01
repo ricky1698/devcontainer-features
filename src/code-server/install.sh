@@ -47,6 +47,9 @@ autostart=true
 startsecs=5
 autorestart=true
 startretries=3
+; signal the whole process group, else children orphan to PID 1 and keep holding ports
+stopasgroup=true
+killasgroup=true
 stderr_logfile=/var/log/code-server.err.log
 stdout_logfile=/var/log/code-server.log
 user=$_REMOTE_USER

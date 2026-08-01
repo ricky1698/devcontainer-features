@@ -1,7 +1,7 @@
 {
     "name": "OpenAB Broker",
     "id": "openab-broker",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "description": "Open Agent Broker (openab) — Discord bot bridging to ACP-enabled coding agents. Builds openab from source; agent CLIs must be provided by other features.",
     "options": {
         "version": {
