@@ -1,7 +1,7 @@
 {
     "name": "VS Code Serve Web",
     "id": "vscode-serve-web",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "Official Microsoft VS Code in the browser using 'code serve-web' with proper entrypoint chaining",
     "options": {
         "port": {

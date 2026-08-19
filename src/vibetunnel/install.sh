@@ -17,6 +17,9 @@ if [[ "$NOAUTH" == "true" ]]; then
     NOAUTH_FLAG="--no-auth"
 fi
 
+SUPERVISOR_SHELL="$(command -v zsh || true)"
+[ -x "$SUPERVISOR_SHELL" ] || SUPERVISOR_SHELL="/bin/bash"
+
 cat > /etc/supervisor/conf.d/vibetunnel.conf << CONFEOF
 [program:vibetunnel]
 command=$_REMOTE_USER_HOME/.local/share/mise/shims/vibetunnel $NOAUTH_FLAG
@@ -25,13 +28,12 @@ autostart=$AUTOSTART_VALUE
 startsecs=5
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/vibetunnel.err.log
 stdout_logfile=/var/log/vibetunnel.log
 user=$_REMOTE_USER
-environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME"
+environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",SHELL="$SUPERVISOR_SHELL"
 CONFEOF
 
 # Create entrypoint script

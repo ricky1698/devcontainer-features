@@ -79,6 +79,9 @@ fi
 
 # Create supervisor config
 mkdir -p /etc/supervisor/conf.d
+SUPERVISOR_SHELL="$(command -v zsh || true)"
+[ -x "$SUPERVISOR_SHELL" ] || SUPERVISOR_SHELL="/bin/bash"
+
 cat > /etc/supervisor/conf.d/vscode-serve-web.conf << CONFEOF
 [program:vscode-serve-web]
 command=/usr/local/bin/code serve-web --host $HOST --port $PORT $TOKEN_FLAG $BASE_PATH_FLAG --accept-server-license-terms
@@ -87,13 +90,12 @@ autostart=true
 startsecs=10
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/vscode-serve-web.err.log
 stdout_logfile=/var/log/vscode-serve-web.log
 user=$_REMOTE_USER
-environment=HOME="$_REMOTE_USER_HOME"
+environment=HOME="$_REMOTE_USER_HOME",SHELL="$SUPERVISOR_SHELL"
 CONFEOF
 
 # Create entrypoint script

@@ -39,6 +39,9 @@ fi
 mkdir -p /etc/supervisor/conf.d
 
 # Create supervisor config
+SUPERVISOR_SHELL="$(command -v zsh || true)"
+[ -x "$SUPERVISOR_SHELL" ] || SUPERVISOR_SHELL="/bin/bash"
+
 cat > /etc/supervisor/conf.d/code-server.conf << CONFEOF
 [program:code-server]
 command=/usr/bin/code-server --auth $AUTH --bind-addr $HOST:$PORT $_REMOTE_USER_HOME
@@ -47,13 +50,12 @@ autostart=true
 startsecs=5
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/code-server.err.log
 stdout_logfile=/var/log/code-server.log
 user=$_REMOTE_USER
-environment=HOME="$_REMOTE_USER_HOME"
+environment=HOME="$_REMOTE_USER_HOME",SHELL="$SUPERVISOR_SHELL"
 CONFEOF
 
 # Create entrypoint script

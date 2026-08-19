@@ -616,7 +616,6 @@ cat > /etc/supervisor/conf.d/nginx.conf << 'SUPERVISOREOF'
 command=/usr/sbin/nginx -g "daemon off;"
 autostart=true
 autorestart=true
-; signal the whole process group, else workers orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stdout_logfile=/var/log/nginx-supervisor.log
@@ -626,19 +625,21 @@ SUPERVISOREOF
 # Create supervisor config for ttyd if enabled
 if [ "$TTYD" = "true" ]; then
     TTYD_BIN=$(command -v ttyd)
+    SUPERVISOR_SHELL="$(command -v zsh || true)"
+    [ -x "$SUPERVISOR_SHELL" ] || SUPERVISOR_SHELL="/bin/bash"
+
     cat > /etc/supervisor/conf.d/ttyd.conf << TTYDEOF
 [program:ttyd]
 command=${TTYD_BIN} -W -p ${TTYD_PORT} -i 127.0.0.1 zsh
 autostart=true
 autorestart=true
-; signal the whole process group, else spawned shells orphan to PID 1 and keep holding ptys
 stopasgroup=true
 killasgroup=true
 stdout_logfile=/var/log/ttyd-supervisor.log
 stderr_logfile=/var/log/ttyd-supervisor.err.log
 user=$_REMOTE_USER
 directory=$_REMOTE_USER_HOME
-environment=HOME="$_REMOTE_USER_HOME",USER="$_REMOTE_USER"
+environment=HOME="$_REMOTE_USER_HOME",USER="$_REMOTE_USER",SHELL="$SUPERVISOR_SHELL"
 TTYDEOF
 fi
 

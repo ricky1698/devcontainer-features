@@ -1,7 +1,7 @@
 {
     "name": "VibeTunnel",
     "id": "vibetunnel",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "VibeTunnel MCP tunnel service with supervisor config",
     "options": {
         "noAuth": {

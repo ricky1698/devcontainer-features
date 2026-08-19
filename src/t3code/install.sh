@@ -16,15 +16,9 @@ if [[ "$AUTOSTART" == "true" ]]; then
     AUTOSTART_VALUE="true"
 fi
 
-# supervisord does not inherit the remote user's login shell, so t3 (and every
-# tool it spawns that honours $SHELL) would otherwise see the build-time
-# /bin/bash instead of the shell the user actually gets in a terminal.
-REMOTE_USER_SHELL=$(getent passwd "$_REMOTE_USER" | cut -d: -f7)
-case "$REMOTE_USER_SHELL" in
-    */nologin|*/false|"") REMOTE_USER_SHELL="/bin/bash" ;;
-    *) [[ -x "$REMOTE_USER_SHELL" ]] || REMOTE_USER_SHELL="/bin/bash" ;;
-esac
-echo "Using SHELL=$REMOTE_USER_SHELL for supervisor-managed t3 processes"
+SUPERVISOR_SHELL="$(command -v zsh || true)"
+[ -x "$SUPERVISOR_SHELL" ] || SUPERVISOR_SHELL="/bin/bash"
+echo "Using SHELL=$SUPERVISOR_SHELL for supervisor-managed processes"
 
 cat > /etc/supervisor/conf.d/t3code.conf << CONFEOF
 [program:t3code]
@@ -34,13 +28,12 @@ autostart=$AUTOSTART_VALUE
 startsecs=5
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/t3code.err.log
 stdout_logfile=/var/log/t3code.log
 user=$_REMOTE_USER
-environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",SHELL="$REMOTE_USER_SHELL",NODE_OPTIONS="--no-network-family-autoselection"
+environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",SHELL="$SUPERVISOR_SHELL",NODE_OPTIONS="--no-network-family-autoselection"
 CONFEOF
 
 # --- T3 Pairing API Server ---
@@ -113,13 +106,12 @@ autostart=$AUTOSTART_VALUE
 startsecs=3
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/t3-pair-server.err.log
 stdout_logfile=/var/log/t3-pair-server.log
 user=$_REMOTE_USER
-environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",SHELL="$REMOTE_USER_SHELL"
+environment=PATH="$_REMOTE_USER_HOME/.local/bin:$_REMOTE_USER_HOME/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin",HOME="$_REMOTE_USER_HOME",SHELL="$SUPERVISOR_SHELL"
 PAIREOF
 
 # --- Register with portal nginx (if portal feature is installed) ---
@@ -188,7 +180,6 @@ autostart=$AUTOSTART_VALUE
 startsecs=3
 autorestart=true
 startretries=3
-; signal the whole process group, else children orphan to PID 1 and keep holding ports
 stopasgroup=true
 killasgroup=true
 stderr_logfile=/var/log/t3-tmp-cleaner.err.log
