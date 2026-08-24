@@ -1,0 +1,27 @@
+{
+    "name": "Antigravity Remote Control",
+    "id": "antigravity",
+    "version": "1.0.0",
+    "description": "Antigravity CLI (agy) with its Remote Control daemon supervised by supervisor instead of systemd/launchd",
+    "options": {
+        "instanceName": {
+            "type": "string",
+            "default": "",
+            "description": "Instance name shown in Remote Control (--remote-control-name). Empty = keep whatever the language server has saved, or let it generate one."
+        },
+        "autoUpdate": {
+            "type": "boolean",
+            "default": true,
+            "description": "Let agy self-update: runs the background updater before each launch, matching the systemd unit's ExecStartPre."
+        },
+        "autostart": {
+            "type": "boolean",
+            "default": false,
+            "description": "Start the daemon automatically via supervisor. Needs a completed one-time sign-in (run 'agy-remote-control-login'), otherwise the daemon exits immediately."
+        }
+    },
+    "entrypoint": "/usr/local/bin/devdesk-antigravity-entrypoint",
+    "installsAfter": [
+        "ghcr.io/ricky1698/devcontainer-features/devdesk-base"
+    ]
+}
