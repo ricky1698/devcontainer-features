@@ -1,0 +1,6 @@
+{
+  "autoconnect": true,
+  "path": "websockify",
+  "reconnect": true,
+  "resize": "remote"
+}

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+eval "$(dbus-launch --sh-syntax)"
+export DBUS_SESSION_BUS_ADDRESS
+export DBUS_SESSION_BUS_PID
+
+fluxbox &
+fluxbox_pid=$!
+
+chromium \
+  --no-default-browser-check \
+  --no-first-run \
+  --password-store=basic \
+  --remote-debugging-port=9222 \
+  --start-maximized \
+  --user-data-dir=/home/browser/chromium-profile \
+  "${BROWSER_START_URL:-about:blank}" &
+chromium_pid=$!
+
+cleanup() {
+  trap - EXIT INT TERM
+  kill "${chromium_pid}" "${fluxbox_pid}" 2>/dev/null || true
+  sleep 0.5
+  kill -KILL "${chromium_pid}" "${fluxbox_pid}" 2>/dev/null || true
+  wait "${chromium_pid}" "${fluxbox_pid}" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
+wait -n "${fluxbox_pid}" "${chromium_pid}"
+exit 1

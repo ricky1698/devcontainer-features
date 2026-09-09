@@ -86,6 +86,16 @@ Options: none
 
 Features are automatically published to GHCR on push to main.
 
+## Images
+
+| Image | Description |
+|---|---|
+| [browser-console](./images/browser-console) | Cluster-neutral Chromium desktop exposed through noVNC |
+
+The browser console workflow builds and smoke-tests pull requests. Merges to
+`main` publish versioned, `latest`, and commit-addressed tags to
+`ghcr.io/ricky1698/devcontainer-features/browser-console`.
+
 ## License
 
 MIT
