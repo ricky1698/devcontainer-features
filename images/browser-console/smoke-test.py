@@ -144,6 +144,11 @@ def assert_rfb_authentication() -> None:
         raise SmokeTestError("WebSocket VNC did not open the authenticated desktop")
 
 
+def run_repeated_healthchecks(name: str) -> None:
+    for _ in range(8):
+        run(["docker", "exec", name, "/opt/browser-console/healthcheck.sh"])
+
+
 def assert_chromium_policy(name: str, ca_file: Path) -> None:
     policy_text = run(
         [
@@ -274,10 +279,10 @@ def main() -> int:
             page = wait_for_novnc(name)
             if "noVNC" not in page:
                 raise SmokeTestError("GET / did not return the noVNC client")
+            run_repeated_healthchecks(name)
             assert_rfb_authentication()
             assert_chromium_policy(name, ca_file)
             assert_chromium_running(name)
-            run(["docker", "exec", name, "/opt/browser-console/healthcheck.sh"])
             run(
                 [
                     "docker",
