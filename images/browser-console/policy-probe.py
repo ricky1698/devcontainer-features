@@ -137,6 +137,24 @@ def cdp_call(
         return json_object(response.get("result"), f"DevTools {method} result")
 
 
+def cdp_event_after_call(
+    stream: WebSocketStream,
+    identifier: int,
+    method: str,
+    event: str,
+) -> JsonObject:
+    stream.write_text(json.dumps({"id": identifier, "method": method}))
+    while True:
+        opcode, payload = stream.read_message()
+        if opcode != 0x1:
+            continue
+        message = json_object(cast(JsonValue, json.loads(payload)), "DevTools message")
+        if message.get("id") == identifier and "error" in message:
+            raise PolicyProbeError(f"DevTools {method} failed: {message['error']}")
+        if message.get("method") == event:
+            return json_object(message.get("params"), f"DevTools {event} params")
+
+
 def policy_ok(port: int, ca_file: Path) -> bool:
     expected = policy_certificate()
     if expected != encoded_certificate(ca_file):
@@ -220,7 +238,12 @@ def endpoint_secure(port: int, hostname: str) -> bool:
             continue
         stream = target_stream(port, target)
         try:
-            result = cdp_call(stream, 1, "Security.getVisibleSecurityState")
+            result = cdp_event_after_call(
+                stream,
+                1,
+                "Security.enable",
+                "Security.visibleSecurityStateChanged",
+            )
             visible = json_object(
                 result.get("visibleSecurityState"), "visible security state"
             )

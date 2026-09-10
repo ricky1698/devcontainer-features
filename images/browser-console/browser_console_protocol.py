@@ -216,9 +216,12 @@ def _type_url(stream: WebSocketStream, url: str) -> None:
     _send_key(stream, ord("l"), True)
     _send_key(stream, ord("l"), False)
     _send_key(stream, control_left, False)
+    time.sleep(0.2)
     for character in url:
         _send_key(stream, ord(character), True)
         _send_key(stream, ord(character), False)
+        time.sleep(0.02)
+    time.sleep(0.2)
     _send_key(stream, enter, True)
     _send_key(stream, enter, False)
 
@@ -288,11 +291,13 @@ def authenticate_vnc(
     idle_seconds: float = 0,
     navigate_to: str | None = None,
     navigation_wait_seconds: float = 3,
+    websocket_path: str = "/websockify",
 ) -> VncAuthentication:
     stream = open_websocket(
         address,
         port,
         host_header,
+        path=websocket_path,
         tls_context=tls_context,
         server_hostname=server_hostname,
     )

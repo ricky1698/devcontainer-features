@@ -43,17 +43,19 @@ docker build -t browser-console:test images/browser-console
 uv run images/browser-console/smoke-test.py --image browser-console:test
 ```
 
-The smoke test covers startup with and without a custom CA, noVNC, WebSocket,
-VNC authentication, framebuffer output, Chromium policy, sandboxing,
-Traditional Chinese font availability, and container exit after Chromium
-stops. It also runs repeated health checks before VNC authentication to prevent
-probes from triggering TigerVNC's connection blacklist.
+The workflow runs focused Chromium DevTools and VNC protocol tests before
+building the image. The image smoke test then covers startup with and without a
+custom CA, noVNC, WebSocket, VNC authentication, framebuffer output, Chromium
+policy, sandboxing, Traditional Chinese font availability, and container exit
+after Chromium stops. It also runs repeated health checks before VNC
+authentication to prevent probes from triggering TigerVNC's connection
+blacklist.
 
 ## Published image
 
 Merges to `main` publish these tags:
 
-- `ghcr.io/ricky1698/devcontainer-features/browser-console:1.0.2`
+- `ghcr.io/ricky1698/devcontainer-features/browser-console:1.0.3`
 - `ghcr.io/ricky1698/devcontainer-features/browser-console:latest`
 - `ghcr.io/ricky1698/devcontainer-features/browser-console:sha-<commit>`
 
