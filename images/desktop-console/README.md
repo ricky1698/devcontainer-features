@@ -16,7 +16,10 @@ Deployment and access controls belong in each infrastructure repository.
 | `/home/desktop`, `/run/desktop-console`, `/tmp`, `/dev/shm` | Yes | Writable runtime volumes for a read-only root filesystem |
 
 The image exposes TCP 6080. TigerVNC listens only on container loopback TCP
-5901. The container runs as UID/GID 10001 with all capabilities dropped and
+5901 and requires VNC password authentication. Its per-host blacklist is
+disabled because websockify makes every browser connection appear to come from
+loopback, so one client with a stale password would otherwise lock out every
+session. The container runs as UID/GID 10001 with all capabilities dropped and
 needs a `/dev/shm` of at least 2 GiB. The container exits when Fluxbox,
 TigerVNC, or websockify stops.
 
@@ -40,7 +43,8 @@ uv run images/desktop-console/smoke-test.py --image desktop-console:test
 ```
 
 The smoke test covers startup with the default and a custom geometry, noVNC,
-WebSocket, VNC authentication, framebuffer output, Traditional Chinese font
+WebSocket, six rejected VNC password attempts followed by a successful login,
+framebuffer output, Traditional Chinese font
 availability, opening Tilix and Google Chrome windows with the sandbox
 enabled under both seccomp configurations above, and container exit after
 Fluxbox stops. It reuses the VNC client from `images/browser-console`.

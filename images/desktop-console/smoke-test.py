@@ -118,7 +118,15 @@ def wait_for_novnc(name: str) -> str:
 
 def assert_rfb_authentication() -> None:
     try:
-        rejected = authenticate_vnc("127.0.0.1", PORT, f"127.0.0.1:{PORT}", b"00000000")
+        rejected_attempts = [
+            authenticate_vnc(
+                "127.0.0.1",
+                PORT,
+                f"127.0.0.1:{PORT}",
+                b"00000000",
+            )
+            for _ in range(6)
+        ]
         accepted = authenticate_vnc(
             "127.0.0.1",
             PORT,
@@ -129,7 +137,7 @@ def assert_rfb_authentication() -> None:
         )
     except BrowserProtocolError as exc:
         raise SmokeTestError(str(exc)) from exc
-    if rejected.accepted:
+    if any(attempt.accepted for attempt in rejected_attempts):
         raise SmokeTestError("WebSocket VNC accepted an incorrect password")
     if (
         not accepted.accepted

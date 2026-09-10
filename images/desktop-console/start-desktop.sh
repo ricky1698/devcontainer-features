@@ -56,6 +56,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
+# websockify connects every client from loopback, so TigerVNC cannot blacklist
+# one client without locking out every browser session.
 tigervncserver :1 \
   -geometry "${geometry}" \
   -depth 24 \
@@ -63,6 +65,7 @@ tigervncserver :1 \
   -localhost yes \
   -fg \
   -SecurityTypes VncAuth \
+  -UseBlacklist no \
   -passwd "${password_target}" \
   -xstartup /opt/desktop-console/fluxbox-startup &
 vnc_pid=$!
