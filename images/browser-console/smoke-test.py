@@ -149,6 +149,12 @@ def run_repeated_healthchecks(name: str) -> None:
         run(["docker", "exec", name, "/opt/browser-console/healthcheck.sh"])
 
 
+def assert_traditional_chinese_fonts(name: str) -> None:
+    families = run(["docker", "exec", name, "fc-list", ":lang=zh-tw", "family"]).stdout
+    if "Noto Sans CJK TC" not in families:
+        raise SmokeTestError("Image does not provide a Traditional Chinese font")
+
+
 def assert_chromium_policy(name: str, ca_file: Path) -> None:
     policy_text = run(
         [
@@ -280,6 +286,7 @@ def main() -> int:
             if "noVNC" not in page:
                 raise SmokeTestError("GET / did not return the noVNC client")
             run_repeated_healthchecks(name)
+            assert_traditional_chinese_fonts(name)
             assert_rfb_authentication()
             assert_chromium_policy(name, ca_file)
             assert_chromium_running(name)
