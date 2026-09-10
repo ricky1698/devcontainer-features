@@ -155,6 +155,23 @@ def assert_traditional_chinese_fonts(name: str) -> None:
         raise SmokeTestError("Image does not provide a Traditional Chinese font")
 
 
+def chromium_page_target_ids(name: str) -> set[str]:
+    raw = run(
+        [
+            "docker",
+            "exec",
+            name,
+            "curl",
+            "--silent",
+            "http://127.0.0.1:9222/json/list",
+        ]
+    ).stdout
+    targets = cast(list[dict[str, object]], json.loads(raw))
+    return {
+        cast(str, target["id"]) for target in targets if target.get("type") == "page"
+    }
+
+
 def assert_chromium_policy(name: str, ca_file: Path) -> None:
     policy_text = run(
         [
@@ -180,6 +197,7 @@ def assert_chromium_policy(name: str, ca_file: Path) -> None:
             "Chromium CACertificates policy does not contain the mounted CA"
         )
     probe = ["docker", "exec", name, "/opt/browser-console/policy-probe.py"]
+    targets_before = chromium_page_target_ids(name)
     run(
         [
             *probe,
@@ -188,6 +206,9 @@ def assert_chromium_policy(name: str, ca_file: Path) -> None:
             "/run/browser-console-ca/ca.crt",
         ]
     )
+    targets_after = chromium_page_target_ids(name)
+    if targets_after != targets_before:
+        raise SmokeTestError("Chromium policy probe leaked its temporary page target")
     run([*probe, "assert-cookie-absent"])
     run([*probe, "set-cookie"])
 

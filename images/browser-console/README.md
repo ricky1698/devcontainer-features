@@ -49,13 +49,14 @@ custom CA, noVNC, WebSocket, VNC authentication, framebuffer output, Chromium
 policy, sandboxing, Traditional Chinese font availability, and container exit
 after Chromium stops. It also runs repeated health checks before VNC
 authentication to prevent probes from triggering TigerVNC's connection
-blacklist.
+blacklist. The Chromium policy probe closes its temporary tab, restores the
+previously visible tab, and checks HTTPS state only on the visible page target.
 
 ## Published image
 
 Merges to `main` publish these tags:
 
-- `ghcr.io/ricky1698/devcontainer-features/browser-console:1.0.3`
+- `ghcr.io/ricky1698/devcontainer-features/browser-console:1.0.4`
 - `ghcr.io/ricky1698/devcontainer-features/browser-console:latest`
 - `ghcr.io/ricky1698/devcontainer-features/browser-console:sha-<commit>`
 
