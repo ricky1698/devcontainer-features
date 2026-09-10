@@ -15,6 +15,7 @@ RUN apt-get update \
         dbus-x11 \
         fluxbox \
         fonts-noto \
+        fonts-noto-cjk \
         fonts-noto-color-emoji \
         openssl \
         python3 \
