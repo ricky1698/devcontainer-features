@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+resolution=${1:-}
+if [[ -z "${resolution}" ]]; then
+  echo "Current settings:"
+  xrandr
+  read -r -p $'\nEnter new resolution (WIDTHxHEIGHT, Ctrl+C to abort)\n> ' resolution
+fi
+if [[ ! "${resolution}" =~ ^[0-9]+x[0-9]+$ ]]; then
+  echo "Invalid resolution format" >&2
+  exit 1
+fi
+xrandr --fb "${resolution}"
+echo "Resolution set to ${resolution}"

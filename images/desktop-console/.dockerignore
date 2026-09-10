@@ -1,0 +1,9 @@
+**
+!defaults.json
+!fluxbox-startup
+!healthcheck.sh
+!mandatory.json
+!qnx-photon-dark
+!set-resolution
+!skel/**
+!start-desktop.sh

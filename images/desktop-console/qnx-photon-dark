@@ -1,0 +1,136 @@
+# photon-qnx-dark
+# dark theme for fluxbox, based on photon-qnx by skypher
+# 2001 (c) skypher, dark variant 2026
+
+toolbar:                             raised gradient vertical
+toolbar.color:                       rgb:2B/2B/2B
+toolbar.colorTo:                     rgb:22/22/22
+
+toolbar.label:                       flat gradient vertical
+toolbar.label.color:                 rgb:2B/2B/2B
+toolbar.label.colorTo:               rgb:22/22/22
+toolbar.label.textColor:             rgb:E0/E0/E0
+
+toolbar.windowLabel:                 sunken solid
+toolbar.windowLabel.color:           rgb:1A/1E/2A
+toolbar.windowLabel.textColor:       rgb:E0/E0/E0
+
+toolbar.clock:                       flat gradient vertical
+toolbar.clock.color:                 rgb:2B/2B/2B
+toolbar.clock.colorTo:               rgb:22/22/22
+toolbar.clock.textColor:             rgb:E0/E0/E0
+
+toolbar.button:                      solid flat
+toolbar.button.color:                rgb:3A/3A/3A
+toolbar.button.picColor:             rgb:E0/E0/E0
+
+toolbar.button.pressed:              sunken flat
+toolbar.button.pressed.color:        rgb:50/50/50
+
+menu.title:                          raised gradient vertical
+menu.title.color:                    rgb:6E/9A/EF
+menu.title.colorTo:                  rgb:2A/4E/8C
+menu.title.textColor:                white
+
+menu.frame:                          sunken gradient vertical
+menu.frame.color:                    rgb:2B/2B/2B
+menu.frame.colorTo:                  rgb:22/22/22
+menu.frame.textColor:                rgb:E0/E0/E0
+
+menu.hilite:                         flat solid
+menu.hilite.color:                   rgb:4A/6A/A0
+menu.hilite.textColor:               white
+
+menu.bullet:                         triangle
+menu.bullet.position:                right
+
+! win focus
+window.title.focus:                  flat gradient vertical
+window.title.focus.color:            rgb:2B/2B/2B
+window.title.focus.colorTo:          rgb:1E/1E/1E
+
+window.label.focus:                  raised gradient vertical
+window.label.focus.color:            rgb:6E/9A/EF
+window.label.focus.colorTo:          rgb:2A/4E/8C
+window.label.focus.textColor:        white
+
+window.button.focus:                 raised gradient vertical
+window.button.focus.color:           rgb:3A/3A/3A
+window.button.focus.colorTo:         rgb:28/28/28
+window.button.focus.picColor:        rgb:E0/E0/E0
+
+window.button.pressed:               sunken solid
+window.button.pressed.color:         rgb:50/50/50
+
+window.handle.focus:                 raised solid
+window.handle.focus.color:           rgb:3A/3A/3A
+
+window.grip.focus:                   Raised Gradient vertical
+window.grip.focus.color:             rgb:6E/9A/EF
+window.grip.focus.colorTo:           rgb:2A/4E/8C
+
+window.frame.focusColor:             rgb:1A/1A/1A
+
+
+! unfocused win
+window.title.unfocus:                flat gradient vertical
+window.title.unfocus.color:          rgb:25/25/25
+window.title.unfocus.colorTo:        rgb:1E/1E/1E
+
+
+window.label.unfocus:                raised gradient vertical
+window.label.unfocus.color:          rgb:38/38/38
+window.label.unfocus.colorTo:        rgb:2A/2A/2A
+window.label.unfocus.textColor:      rgb:80/80/80
+
+window.button.unfocus:               raised gradient vertical
+window.button.unfocus.color:         rgb:3A/3A/3A
+window.button.unfocus.colorTo:       rgb:28/28/28
+window.button.unfocus.picColor:      rgb:70/70/70
+
+window.handle.unfocus:               raised solid
+window.handle.unfocus.color:         rgb:2A/2A/2A
+
+window.grip.unfocus:                 raised solid
+window.grip.unfocus.color:           rgb:2A/2A/2A
+
+window.frame.unfocusColor:           rgb:1A/1A/1A
+
+! ----------- tab - explicit for fluxbox, the best wm out there[tm] (;
+window.tab.justify:                  left
+
+window.tab.label.unfocus:            raised gradient vertical
+window.tab.label.unfocus.color:      rgb:38/38/38
+window.tab.label.unfocus.colorTo:    rgb:2A/2A/2A
+window.tab.label.unfocus.textColor:  rgb:80/80/80
+
+window.tab.label.focus:              raised gradient vertical
+window.tab.label.focus.color:        rgb:6E/9A/EF
+window.tab.label.focus.colorTo:      rgb:2A/4E/8C
+window.tab.label.focus.textColor:    white
+
+window.tab.borderWidth:              1
+window.tab.borderColor:              rgb:1A/1A/1A
+! ----------- (fluxbox.sourceforge.net)
+
+! fonts
+window.tab.font:                     -*-gamow-medium-r-*-*-7-*-*-*-*-60-*-*
+! ^ change this to lucidasans-10 if you don't have gamow
+
+
+*.font:                              lucidasans-10
+
+toolbar.justify:                     left
+window.justify:                      left
+menu.title.justify:                  left
+menu.frame.justify:                  left
+
+! borders n stuff
+borderColor:                         rgb:1A/1A/1A
+borderWidth:                         1
+bevelWidth:                          2
+handleWidth:                         4
+frameWidth:                          0
+
+background: flat
+background.color: rgb:1E/1E/1E
