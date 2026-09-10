@@ -99,6 +99,28 @@ def create_target(port: int, url: str) -> JsonObject:
     )
 
 
+def close_target(port: int, target: JsonObject) -> None:
+    target_id = urllib.parse.quote(
+        string_value(target.get("id"), "target ID"),
+        safe="",
+    )
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{port}/json/close/{target_id}", timeout=5
+    ) as response:
+        response.read()
+
+
+def activate_target(port: int, target: JsonObject) -> None:
+    target_id = urllib.parse.quote(
+        string_value(target.get("id"), "target ID"),
+        safe="",
+    )
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{port}/json/activate/{target_id}", timeout=5
+    ) as response:
+        response.read()
+
+
 def target_stream(port: int, target: JsonObject) -> WebSocketStream:
     websocket_url = string_value(
         target.get("webSocketDebuggerUrl"), "target WebSocket URL"
@@ -155,14 +177,39 @@ def cdp_event_after_call(
             return json_object(message.get("params"), f"DevTools {event} params")
 
 
+def target_visibility(stream: WebSocketStream) -> str:
+    result = cdp_call(
+        stream,
+        1,
+        "Runtime.evaluate",
+        {
+            "expression": "document.visibilityState",
+            "returnByValue": True,
+        },
+    )
+    remote = json_object(result.get("result"), "visibility remote value")
+    return string_value(remote.get("value"), "target visibility")
+
+
+def visible_page_target(port: int) -> JsonObject | None:
+    for target in page_targets(port):
+        stream = target_stream(port, target)
+        try:
+            if target_visibility(stream) == "visible":
+                return target
+        finally:
+            stream.close()
+    return None
+
+
 def policy_ok(port: int, ca_file: Path) -> bool:
     expected = policy_certificate()
     if expected != encoded_certificate(ca_file):
         raise PolicyProbeError(
             "Chromium CACertificates policy does not match the mounted CA"
         )
+    previous_target = visible_page_target(port)
     target = create_target(port, "chrome://policy")
-    stream = target_stream(port, target)
     expression = f"""(() => {{
       const rows = [];
       const collect = (root) => {{
@@ -190,69 +237,88 @@ def policy_ok(port: int, ca_file: Path) -> bool:
       }};
     }})()"""
     try:
-        value: JsonObject = {}
-        for identifier in range(1, 31):
-            result = cdp_call(
-                stream,
-                identifier,
-                "Runtime.evaluate",
-                {"expression": expression, "returnByValue": True},
-            )
-            remote = json_object(result.get("result"), "remote value")
-            value = json_object(remote.get("value"), "policy result")
-            if all(
-                value.get(field) is True
-                for field in (
-                    "loaded",
-                    "expectedValue",
-                    "platform",
-                    "machine",
-                    "mandatory",
-                    "ok",
+        stream = target_stream(port, target)
+        try:
+            value: JsonObject = {}
+            for identifier in range(1, 31):
+                result = cdp_call(
+                    stream,
+                    identifier,
+                    "Runtime.evaluate",
+                    {"expression": expression, "returnByValue": True},
                 )
-            ):
-                return True
-            time.sleep(0.25)
-        raise PolicyProbeError(
-            f"Chromium policy fields did not match: {json.dumps(value, sort_keys=True)}"
-        )
+                remote = json_object(result.get("result"), "remote value")
+                value = json_object(remote.get("value"), "policy result")
+                if all(
+                    value.get(field) is True
+                    for field in (
+                        "loaded",
+                        "expectedValue",
+                        "platform",
+                        "machine",
+                        "mandatory",
+                        "ok",
+                    )
+                ):
+                    return True
+                time.sleep(0.25)
+            raise PolicyProbeError(
+                "Chromium policy fields did not match: "
+                f"{json.dumps(value, sort_keys=True)}"
+            )
+        finally:
+            stream.close()
     finally:
-        stream.close()
+        try:
+            close_target(port, target)
+        finally:
+            if previous_target is not None:
+                activate_target(port, previous_target)
 
 
 def endpoint_secure(port: int, hostname: str) -> bool:
     deadline = time.monotonic() + 15
+    observations: list[str] = []
     while time.monotonic() < deadline:
-        target = next(
-            (
-                item
-                for item in page_targets(port)
-                if string_value(item.get("url"), "target URL").startswith(
-                    f"https://{hostname}/"
+        observations = []
+        for target in page_targets(port):
+            target_id = string_value(target.get("id"), "target ID")
+            url = string_value(target.get("url"), "target URL")
+            if not url.startswith(f"https://{hostname}/"):
+                observations.append(f"id={target_id} url={url} visibility=not-checked")
+                continue
+            stream = target_stream(port, target)
+            try:
+                visibility = target_visibility(stream)
+                if visibility != "visible":
+                    observations.append(
+                        f"id={target_id} url={url} visibility={visibility}"
+                    )
+                    continue
+                result = cdp_event_after_call(
+                    stream,
+                    2,
+                    "Security.enable",
+                    "Security.visibleSecurityStateChanged",
                 )
-            ),
-            None,
-        )
-        if target is None:
-            time.sleep(0.25)
-            continue
-        stream = target_stream(port, target)
-        try:
-            result = cdp_event_after_call(
-                stream,
-                1,
-                "Security.enable",
-                "Security.visibleSecurityStateChanged",
-            )
-            visible = json_object(
-                result.get("visibleSecurityState"), "visible security state"
-            )
-            if visible.get("securityState") == "secure":
-                return True
-        finally:
-            stream.close()
+                visible = json_object(
+                    result.get("visibleSecurityState"), "visible security state"
+                )
+                security_state = visible.get("securityState")
+                observations.append(
+                    f"id={target_id} url={url} visibility={visibility} "
+                    f"security={security_state}"
+                )
+                if security_state == "secure":
+                    return True
+            finally:
+                stream.close()
         time.sleep(0.25)
-    return False
+    detail = "; ".join(observations) if observations else "no page targets"
+    raise PolicyProbeError(
+        f"Visible Chromium did not securely open {hostname} within 15 seconds; "
+        f"last targets: {detail}"
+    )
 
 
 def cookie_present(port: int) -> bool:
@@ -317,8 +383,7 @@ def main() -> int:
         print("Chromium CACertificates runtime policy: PASS")
     elif args.command == "endpoint":
         hostname = cast(str, args.hostname)
-        if not endpoint_secure(port, hostname):
-            raise PolicyProbeError(f"Visible Chromium did not securely open {hostname}")
+        endpoint_secure(port, hostname)
         print(f"Visible Chromium endpoint {hostname}: PASS")
     elif args.command == "set-cookie":
         set_cookie(port)
