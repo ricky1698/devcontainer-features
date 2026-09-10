@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if [[ ! -d "${HOME}/.fluxbox" ]]; then
+  cp -R /opt/desktop-console/skel/. "${HOME}/"
+fi
+
+xsetroot -solid '#1E1E1E'
+
+exec dbus-launch --exit-with-session fluxbox

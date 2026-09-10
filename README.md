@@ -91,10 +91,11 @@ Features are automatically published to GHCR on push to main.
 | Image | Description |
 |---|---|
 | [browser-console](./images/browser-console) | Cluster-neutral Chromium desktop exposed through noVNC |
+| [desktop-console](./images/desktop-console) | Fluxbox desktop with Google Chrome and Tilix exposed through noVNC |
 
-The browser console workflow builds and smoke-tests pull requests. Merges to
+Each image has a workflow that builds and smoke-tests pull requests. Merges to
 `main` publish versioned, `latest`, and commit-addressed tags to
-`ghcr.io/ricky1698/devcontainer-features/browser-console`.
+`ghcr.io/ricky1698/devcontainer-features/<image>`.
 
 ## License
 

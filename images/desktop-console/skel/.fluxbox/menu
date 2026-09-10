@@ -1,0 +1,15 @@
+[begin] (  Application Menu  )
+    [exec] (Terminal) { tilix } <>
+    [exec] (Web Browser) { google-chrome --no-first-run --no-default-browser-check --password-store=basic } <>
+    [exec] (Text Editor) { mousepad } <>
+    [submenu] (System) {}
+        [exec] (Set Resolution) { tilix -t "Set Resolution" -e /opt/desktop-console/set-resolution } <>
+        [exec] (Edit Application Menu) { mousepad ~/.fluxbox/menu } <>
+        [exec] (Top Processes) { tilix -t "Top" -e htop } <>
+        [exec] (Xkill) { xkill } <>
+    [end]
+    [config] (Configuration)
+    [workspaces] (Workspaces)
+    [restart] (Restart)
+    [exit] (Exit)
+[end]
