@@ -22,7 +22,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 
-from playwright.sync_api import Browser, Page, Playwright, sync_playwright
+from playwright.sync_api import Browser, Error, Page, Playwright, sync_playwright
 
 PORT = 16082
 PASSWORD = "A7x!9Qp#"
@@ -163,10 +163,16 @@ def local(page: Page) -> str:
 
 def expect_local(page: Page, expected: str, label: str) -> None:
     deadline = time.monotonic() + 5
-    actual = local(page)
-    while actual != expected and time.monotonic() < deadline:
+    while True:
+        # Firefox in CI has rejected a read right after the copy shortcut,
+        # while the ClipboardItem write may still be pending, so retry it.
+        try:
+            actual = local(page)
+        except Error as exc:
+            actual = f"<read failed: {exc.message}>"
+        if actual == expected or time.monotonic() >= deadline:
+            break
         time.sleep(0.2)
-        actual = local(page)
     if actual != expected:
         raise ClipboardTestError(f"{label}: local clipboard is {actual!r}, expected {expected!r}")
 
