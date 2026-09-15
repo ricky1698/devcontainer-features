@@ -57,8 +57,43 @@ jobs:
       - name: Run image smoke test
         run: uv run images/desktop-console/smoke-test.py --image desktop-console:test
 
+      - name: Install clipboard test browsers
+        run: uv run --with playwright==1.55.0 playwright install --with-deps chromium firefox
+
+      - name: Run clipboard test
+        run: uv run images/desktop-console/clipboard-test.py --image desktop-console:test
+
+      # Pull requests from this repository publish pr-<number> tags so a cluster
+      # can run the change before merge. Fork pull requests get a read-only
+      # token, so they only build and test.
+      - name: Choose image tags
+        id: tags
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if [[ $EVENT_NAME == push && $GITHUB_REF == refs/heads/main ]]; then
+            revision=$GITHUB_SHA
+            tags="$IMAGE_NAME:$VERSION,$IMAGE_NAME:latest,$IMAGE_NAME:sha-$GITHUB_SHA"
+          elif [[ $EVENT_NAME == pull_request && $PR_HEAD_REPOSITORY == "$GITHUB_REPOSITORY" ]]; then
+            revision=$PR_HEAD_SHA
+            tags="$IMAGE_NAME:pr-$PR_NUMBER,$IMAGE_NAME:pr-$PR_NUMBER-${PR_HEAD_SHA:0:7}"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          {
+            echo "publish=true"
+            echo "revision=$revision"
+            echo "tags=$tags"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Log in to GHCR
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: steps.tags.outputs.publish == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -66,7 +101,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish image
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: steps.tags.outputs.publish == 'true'
         uses: docker/build-push-action@v6
         with:
           context: images/desktop-console
@@ -74,12 +109,9 @@ jobs:
           platforms: linux/amd64
           provenance: mode=max
           sbom: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:sha-${{ github.sha }}
+          tags: ${{ steps.tags.outputs.tags }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ steps.tags.outputs.revision }}
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
           cache-from: type=gha,scope=desktop-console
