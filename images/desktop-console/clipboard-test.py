@@ -196,6 +196,18 @@ def assert_paste_and_copy(page: Page, engine: str) -> None:
         expect_local(page, text, f"{engine} paste then copy")
 
 
+def assert_empty_clipboard_paste(page: Page, engine: str) -> None:
+    set_local(page, "")
+    page.keyboard.press("Control+a")
+    page.keyboard.press("Control+v")
+    time.sleep(0.5)
+    # Typing after the paste shows what the document holds: stale remote text
+    # would still be in front of it.
+    page.keyboard.type("after empty paste")
+    copy_document(page)
+    expect_local(page, "after empty paste", f"{engine} empty clipboard paste")
+
+
 def assert_copy_without_remote_change(page: Page, engine: str) -> None:
     set_local(page, "unchanged")
     page.keyboard.press("End")
@@ -223,6 +235,7 @@ def main() -> int:
                 try:
                     connect(page)
                     assert_paste_and_copy(page, engine)
+                    assert_empty_clipboard_paste(page, engine)
                     assert_copy_without_remote_change(page, engine)
                 finally:
                     browser.close()

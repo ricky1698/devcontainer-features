@@ -64,6 +64,9 @@ function sendShortcut(rfb, event) {
     }
 }
 
+// text is the local clipboard text, or null when the browser gave us none.
+// An empty string is a real value: it clears the desktop clipboard, so an
+// empty local clipboard pastes nothing instead of stale remote text.
 function finishPaste(text) {
     if (pendingPaste === null) {
         return;
@@ -71,7 +74,7 @@ function finishPaste(text) {
     const { rfb, event, timer } = pendingPaste;
     pendingPaste = null;
     clearTimeout(timer);
-    if (text) {
+    if (text !== null) {
         rfb.clipboardPasteFrom(text);
     }
     sendShortcut(rfb, event);
@@ -118,11 +121,11 @@ window.addEventListener(
         // the browser will not fire the paste event.
         event.stopImmediatePropagation();
         if (action === "paste") {
-            finishPaste("");
+            finishPaste(null);
             pendingPaste = {
                 rfb,
                 event,
-                timer: setTimeout(() => finishPaste(""), PASTE_FALLBACK_MS),
+                timer: setTimeout(() => finishPaste(null), PASTE_FALLBACK_MS),
             };
         } else {
             event.preventDefault();
@@ -138,7 +141,7 @@ window.addEventListener(
     "keyup",
     (event) => {
         if (pendingPaste !== null && event.key === (isMac() ? "Meta" : "Control")) {
-            finishPaste("");
+            finishPaste(null);
         }
     },
     true
@@ -149,7 +152,9 @@ document.addEventListener("paste", (event) => {
         return;
     }
     event.preventDefault();
-    finishPaste(event.clipboardData?.getData("text/plain") ?? "");
+    // Chromium reports no types at all for an empty clipboard, so read the
+    // text rather than looking for text/plain among the types.
+    finishPaste(event.clipboardData?.getData("text/plain") ?? null);
 });
 
 // noVNC adds UI.clipboardReceive to every new RFB connection.

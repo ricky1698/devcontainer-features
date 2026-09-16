@@ -84,7 +84,7 @@ the local clipboard alone.
 
 Merges to `main` publish these tags:
 
-- `ghcr.io/ricky1698/devcontainer-features/desktop-console:1.0.0`
+- `ghcr.io/ricky1698/devcontainer-features/desktop-console:1.1.0`
 - `ghcr.io/ricky1698/devcontainer-features/desktop-console:latest`
 - `ghcr.io/ricky1698/devcontainer-features/desktop-console:sha-<commit>`
 
