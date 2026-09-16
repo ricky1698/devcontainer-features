@@ -35,11 +35,37 @@ on first start. Mount a persistent volume there to keep browser profiles and
 menu edits across restarts. The noVNC client defaults to scaling the desktop
 to the browser window; change it from the noVNC settings panel.
 
+## Clipboard
+
+The noVNC page loads `clipboard-sync.js`, which syncs the clipboard when you
+press a shortcut inside the desktop instead of through the noVNC clipboard
+panel:
+
+- Ctrl+V (Cmd+V on macOS) sends the local clipboard text to the desktop, then
+  delivers the keystroke, so the focused application pastes the new text.
+- Ctrl+C or Ctrl+X (Cmd+C or Cmd+X on macOS) delivers the keystroke and writes
+  the next text the desktop copies, within two seconds, to the local
+  clipboard. Terminal shortcuts with Shift work the same way.
+
+Browsers allow clipboard access only on HTTPS or localhost pages and only
+during a user gesture, which is why both directions start from the shortcut.
+Copying from an application menu or right-click menu updates only the noVNC
+clipboard panel.
+
+TigerVNC runs with `SendPrimary` and `SetPrimary` off, so only the CLIPBOARD
+selection is shared. Selecting text in the desktop does not change the local
+clipboard, and a paste replaces the selected text instead of clearing it.
+
+The script imports noVNC internals and is tied to the pinned noVNC version.
+Run the clipboard test after bumping `NOVNC_VERSION`.
+
 ## Local verification
 
 ```bash
 docker build -t desktop-console:test images/desktop-console
 uv run images/desktop-console/smoke-test.py --image desktop-console:test
+uv run --with playwright==1.55.0 playwright install --with-deps chromium firefox
+uv run images/desktop-console/clipboard-test.py --image desktop-console:test
 ```
 
 The smoke test covers startup with the default and a custom geometry, noVNC,
@@ -49,13 +75,25 @@ availability, opening Tilix and Google Chrome windows with the sandbox
 enabled under both seccomp configurations above, and container exit after
 Fluxbox stops. It reuses the VNC client from `images/browser-console`.
 
+The clipboard test drives Chromium and Firefox through noVNC against Mousepad.
+It checks that a paste replaces the selection with the new local text, that a
+copy reaches the local clipboard, and that a copy with nothing selected leaves
+the local clipboard alone.
+
 ## Published image
 
 Merges to `main` publish these tags:
 
-- `ghcr.io/ricky1698/devcontainer-features/desktop-console:1.0.0`
+- `ghcr.io/ricky1698/devcontainer-features/desktop-console:1.1.0`
 - `ghcr.io/ricky1698/devcontainer-features/desktop-console:latest`
 - `ghcr.io/ricky1698/devcontainer-features/desktop-console:sha-<commit>`
+
+Pull requests from branches in this repository publish test images after the
+smoke and clipboard tests pass:
+
+- `ghcr.io/ricky1698/devcontainer-features/desktop-console:pr-<number>`, which
+  moves with each push
+- `ghcr.io/ricky1698/devcontainer-features/desktop-console:pr-<number>-<short-sha>`
 
 Bump `VERSION` before changing the image after a release.
 

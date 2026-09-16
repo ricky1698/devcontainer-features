@@ -57,7 +57,10 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # websockify connects every client from loopback, so TigerVNC cannot blacklist
-# one client without locking out every browser session.
+# one client without locking out every browser session. Clipboard sync uses
+# only CLIPBOARD: SendPrimary off keeps a text selection from reaching the
+# browser, and SetPrimary off keeps a paste from clearing the selection it
+# should replace.
 tigervncserver :1 \
   -geometry "${geometry}" \
   -depth 24 \
@@ -66,6 +69,8 @@ tigervncserver :1 \
   -fg \
   -SecurityTypes VncAuth \
   -UseBlacklist no \
+  -SendPrimary no \
+  -SetPrimary no \
   -passwd "${password_target}" \
   -xstartup /opt/desktop-console/fluxbox-startup &
 vnc_pid=$!

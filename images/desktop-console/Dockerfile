@@ -78,7 +78,11 @@ COPY --chown=desktop:desktop set-resolution /opt/desktop-console/set-resolution
 COPY --chown=desktop:desktop skel /opt/desktop-console/skel
 COPY qnx-photon-dark /usr/share/fluxbox/styles/qnx-photon-dark
 COPY mandatory.json defaults.json /opt/novnc/
-RUN chmod 0755 \
+COPY clipboard-sync.js /opt/novnc/app/clipboard-sync.js
+RUN sed -i 's|^\( *\)<script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>$|&\n\1<script type="module" crossorigin="anonymous" src="app/clipboard-sync.js"></script>|' \
+        /opt/novnc/index.html \
+    && grep -q 'src="app/clipboard-sync.js"' /opt/novnc/index.html \
+    && chmod 0755 \
         /opt/desktop-console/start-desktop.sh \
         /opt/desktop-console/fluxbox-startup \
         /opt/desktop-console/healthcheck.sh \
@@ -87,7 +91,8 @@ RUN chmod 0755 \
     && chmod 0644 \
         /usr/share/fluxbox/styles/qnx-photon-dark \
         /opt/novnc/mandatory.json \
-        /opt/novnc/defaults.json
+        /opt/novnc/defaults.json \
+        /opt/novnc/app/clipboard-sync.js
 
 USER 10001:10001
 ENV DISPLAY=:1
