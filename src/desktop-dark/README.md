@@ -64,6 +64,7 @@ The web port is served on all interfaces. With `noPassword`, anyone who can
 route to it gets a session, and every Ctrl+V you press pushes your local
 clipboard into it. Only use `noPassword` where access is already restricted.
 
+
 ---
 
 _Note: This file was auto-generated from the [devcontainer-feature.json](https://github.com/ricky1698/devcontainer-features/blob/main/src/desktop-dark/devcontainer-feature.json).  Add additional notes to a `NOTES.md`._
