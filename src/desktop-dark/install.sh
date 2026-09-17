@@ -248,14 +248,6 @@ if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     mkdir -p /usr/local/novnc
     curl -sSL https://github.com/novnc/noVNC/archive/v${NOVNC_VERSION}.zip -o /tmp/novnc-install.zip
     unzip /tmp/novnc-install.zip -d /usr/local/novnc
-    # clipboard-sync.js imports noVNC internals, so it is tied to the noVNC
-    # version. Verify the injection rather than ship a desktop whose clipboard
-    # silently does nothing. Patch vnc.html first so index.html inherits it.
-    cp "$(dirname "$0")/clipboard-sync.js" /usr/local/novnc/noVNC-${NOVNC_VERSION}/app/clipboard-sync.js
-    chmod 0644 /usr/local/novnc/noVNC-${NOVNC_VERSION}/app/clipboard-sync.js
-    sed -i 's|^\( *\)<script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>$|&\n\1<script type="module" crossorigin="anonymous" src="app/clipboard-sync.js"></script>|' \
-        /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html
-    grep -q 'src="app/clipboard-sync.js"' /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html
     cp /usr/local/novnc/noVNC-${NOVNC_VERSION}/vnc.html /usr/local/novnc/noVNC-${NOVNC_VERSION}/index.html
     curl -sSL https://github.com/novnc/websockify/archive/v${WEBSOCKETIFY_VERSION}.zip -o /tmp/websockify-install.zip
     unzip /tmp/websockify-install.zip -d /usr/local/novnc
@@ -265,6 +257,23 @@ if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     # Install noVNC dependencies and use them.
     check_packages python3-minimal python3-numpy
     sed -i -E 's/^python /python3 /' /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION}/run
+fi
+
+# Load clipboard-sync.js from both noVNC pages. This sits outside the install
+# guard above so that rerunning the script upgrades an existing desktop.
+# clipboard-sync.js imports noVNC internals, so it is tied to the noVNC
+# version. Verify the injection rather than ship a desktop whose clipboard
+# silently does nothing.
+if [ "${INSTALL_NOVNC}" = "true" ]; then
+    NOVNC_DIR="/usr/local/novnc/noVNC-${NOVNC_VERSION}"
+    install -m 0644 "$(dirname "$0")/clipboard-sync.js" "${NOVNC_DIR}/app/clipboard-sync.js"
+    for page in vnc.html index.html; do
+        if ! grep -q 'src="app/clipboard-sync.js"' "${NOVNC_DIR}/${page}"; then
+            sed -i 's|^\( *\)<script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>$|&\n\1<script type="module" crossorigin="anonymous" src="app/clipboard-sync.js"></script>|' \
+                "${NOVNC_DIR}/${page}"
+            grep -q 'src="app/clipboard-sync.js"' "${NOVNC_DIR}/${page}"
+        fi
+    done
 fi
 
 ##############################
