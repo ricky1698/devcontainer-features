@@ -1,6 +1,6 @@
 {
     "id": "desktop-dark",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "name": "Desktop (Dark Theme)",
     "description": "Lightweight Fluxbox desktop with dark theme, accessible via VNC viewer or web browser. Based on devcontainers/features/desktop-lite with built-in dark mode support.",
     "options": {

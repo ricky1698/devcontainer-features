@@ -259,6 +259,23 @@ if [ "${INSTALL_NOVNC}" = "true" ] && [ ! -d "/usr/local/novnc" ]; then
     sed -i -E 's/^python /python3 /' /usr/local/novnc/websockify-${WEBSOCKETIFY_VERSION}/run
 fi
 
+# Load clipboard-sync.js from both noVNC pages. This sits outside the install
+# guard above so that rerunning the script upgrades an existing desktop.
+# clipboard-sync.js imports noVNC internals, so it is tied to the noVNC
+# version. Verify the injection rather than ship a desktop whose clipboard
+# silently does nothing.
+if [ "${INSTALL_NOVNC}" = "true" ]; then
+    NOVNC_DIR="/usr/local/novnc/noVNC-${NOVNC_VERSION}"
+    install -m 0644 "$(dirname "$0")/clipboard-sync.js" "${NOVNC_DIR}/app/clipboard-sync.js"
+    for page in vnc.html index.html; do
+        if ! grep -q 'src="app/clipboard-sync.js"' "${NOVNC_DIR}/${page}"; then
+            sed -i 's|^\( *\)<script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>$|&\n\1<script type="module" crossorigin="anonymous" src="app/clipboard-sync.js"></script>|' \
+                "${NOVNC_DIR}/${page}"
+            grep -q 'src="app/clipboard-sync.js"' "${NOVNC_DIR}/${page}"
+        fi
+    done
+fi
+
 ##############################
 #  Dark theme configuration  #
 ##############################
@@ -338,6 +355,15 @@ fi
 
 echo -e "\nSuccess!\n"
 EOF
+
+# Resolve the VNC security options now. The generated script never sets
+# VNC_PASSWORD, so deciding at runtime left every desktop on SecurityTypes None
+# no matter what the password option said.
+if [ -n "${VNC_PASSWORD+x}" ]; then
+    vnc_security_options="-passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
+else
+    vnc_security_options="-SecurityTypes None"
+fi
 
 # Container ENTRYPOINT script
 cat << EOF > /usr/local/share/desktop-init.sh
@@ -431,14 +457,14 @@ if [ "\$(echo "\${VNC_RESOLUTION}" | tr -cd 'x' | wc -c)" = "1" ]; then VNC_RESO
 screen_geometry="\${VNC_RESOLUTION%*x*}"
 screen_depth="\${VNC_RESOLUTION##*x}"
 
-# Check if VNC_PASSWORD is set and use the appropriate command
-common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg"
+# noVNC connects every browser session from loopback, so TigerVNC cannot
+# blacklist one client without locking out every session. Clipboard sync uses
+# only CLIPBOARD: SendPrimary off keeps a text selection from reaching the
+# browser, and SetPrimary off keeps a paste from clearing the selection it
+# should replace.
+common_options="tigervncserver \${DISPLAY} -geometry \${screen_geometry} -depth \${screen_depth} -rfbport ${VNC_PORT} -dpi \${VNC_DPI:-96} -localhost -desktop fluxbox -fg -UseBlacklist no -SendPrimary no -SetPrimary no"
 
-if [ -n "\${VNC_PASSWORD+x}" ]; then
-    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} -passwd /usr/local/etc/vscode-dev-containers/vnc-passwd"
-else
-    startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} -SecurityTypes None"
-fi
+startInBackgroundIfNotRunning "Xtigervnc" sudoUserIf "\${common_options} ${vnc_security_options}"
 
 # Apply dark desktop background after VNC is running
 sudoUserIf bash -c 'DISPLAY=:1 xsetroot -solid "${BACKGROUND_COLOR}"' 2>/dev/null || true
