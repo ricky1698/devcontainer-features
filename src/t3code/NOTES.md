@@ -5,7 +5,7 @@ This feature installs three supervisor programs:
 | Program | Purpose |
 |---------|---------|
 | `t3code` | The T3 Code server (`t3 --host … --no-browser`), port 3773. |
-| `t3-pair-server` | Tiny HTTP helper (localhost:7691) that mints t3 pairing tokens; proxied by the portal nginx at `/api/t3-pair`. |
+| `t3-pair-server` | Tiny HTTP helper (localhost:7691) that mints t3 pairing tokens; proxied by the portal nginx at `/api/t3-pair`. Links point at `https://<fqdn>:3774`, which Tailscale Serve must proxy to port 3773. |
 | `t3-tmp-cleaner` | Periodic `/tmp` sweeper (see below). |
 
 ## Why `t3-tmp-cleaner` exists

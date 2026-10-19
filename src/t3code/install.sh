@@ -76,7 +76,7 @@ const server = http.createServer((req, res) => {
 
     // Generate pairing token via CLI
     const result = execSync(
-      `t3 auth pairing create --json --base-url "http://${fqdn}:3773"`,
+      `t3 auth pairing create --json --base-url "https://${fqdn}:3774"`,
       { encoding: "utf-8", timeout: 10000 }
     );
 
